@@ -66,9 +66,9 @@ A complete file is a `SCREEN` declaration, optional `import` lines, then a serie
 
 ```
 SCREEN · META · PURPOSE · SCOPE · ROUTE · ACTORS · ENTRY · EXIT · PERMISSIONS
-FEATURE_FLAGS · MODEL · DATA · COPY · UI · STATES · LIFECYCLE · ANIMATION
-VALIDATION · VALIDATION_UI · BUSINESS_RULES · ACTIONS · FLOW · API · NAVIGATION
-ANALYTICS · A11Y · ERRORS · ACCEPTANCE · OPEN_QUESTIONS
+FEATURE_FLAGS · MODEL · DATA · COPY · UI · STATES · STATE_TRANSITIONS · LIFECYCLE
+ANIMATION · VALIDATION · VALIDATION_UI · BUSINESS_RULES · ACTIONS · FLOW · API
+NAVIGATION · ANALYTICS · A11Y · ERRORS · ACCEPTANCE · OPEN_QUESTIONS
 ```
 
 Only **`SCREEN`, `ROUTE`, `MODEL`, `UI`, `STATES`, `FLOW`, and `ACCEPTANCE`** are mandatory for a production screen. Everything else can be omitted on simple screens — though the production default is to include all sections, even if some are short.

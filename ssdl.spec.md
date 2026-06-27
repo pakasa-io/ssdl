@@ -361,6 +361,7 @@ DATA { ... }
 COPY { ... }
 UI { ... }
 STATES { ... }
+STATE_TRANSITIONS { ... }
 LIFECYCLE { ... }
 ANIMATION { ... }
 VALIDATION { ... }
@@ -408,11 +409,12 @@ ImportItem      := (ComponentId | Identifier | CopyKey) ["as" Identifier]
 Path            := QuotedString                        // relative path or @alias path
 CopyNamespace   := "copy" "." Identifier+             // e.g. copy.common, copy.errors
 IncludeDirective := "include" Path                     // valid at the top of any section block, before section-specific entries; inlines content from the named fragment file into the enclosing section
-Section         := META | FEATURE_FLAGS | PURPOSE | SCOPE | ROUTE | PERMISSIONS
-                 | ACTORS | ENTRY | EXIT | MODEL | DATA | COPY | UI | STATES
-                 | LIFECYCLE | ANIMATION | VALIDATION | VALIDATION_UI
-                 | BUSINESS_RULES | ACTIONS | FLOW | API | NAVIGATION | ANALYTICS
-                 | A11Y | ERRORS | ACCEPTANCE | OPEN_QUESTIONS | OVERRIDE
+Section         := META | PURPOSE | SCOPE | ROUTE | ACTORS | ENTRY | EXIT
+                 | PERMISSIONS | FEATURE_FLAGS | MODEL | DATA | COPY | UI
+                 | STATES | STATE_TRANSITIONS | LIFECYCLE | ANIMATION | VALIDATION
+                 | VALIDATION_UI | BUSINESS_RULES | ACTIONS | FLOW | API
+                 | NAVIGATION | ANALYTICS | A11Y | ERRORS | ACCEPTANCE
+                 | OPEN_QUESTIONS | OVERRIDE
 
 // --- Fragment document ---
 
