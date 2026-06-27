@@ -11,15 +11,16 @@ the authoritative grammar and exact directive options come from the spec via `ag
 Onboarding · Sign-in
   Welcome ──signIn──▶ Login ──auth.success⇒──▶ Home
    (public)            (public)                 (authenticated)
-      └──register──▶ SignUp ─(out of scope here)
+      └──register──▶ SignUp  (hand-off → Register journey)
   Entry:  Welcome (cold start; deeplink /welcome)   ·   Login (deeplink /login)
-  Exit:   Home (replace-stack), SignUp
+  Exit:   Home (replace-stack)  ·  SignUp (hand-off → Register journey)
   ⇒ = replace-stack — back must not return to Login after success
   Shared: shared.navigation.fragment.ssdl (#app_tab_bar) imported by Home
 ```
 
-Closure check: every `EXIT` lands on a real node; `Welcome`/`Login` are reachable from app entry; `auth.success`
-replaces the stack so back cannot re-expose `Login`; `Home` requires auth and is reached only via success.
+Closure check: every `EXIT` lands on a real node — `SignUp` is a hand-off to the separate **Register** journey, not
+a dangling edge; `Welcome`/`Login` are reachable from app entry; `auth.success` replaces the stack so back cannot
+re-expose `Login`; `Home` requires auth and is reached only via success.
 
 ## `screen.auth.welcome.ssdl`
 
@@ -40,30 +41,29 @@ ENTRY {
 }
 EXIT {
   - to: Login  when: tap #sign_in
-  - to: SignUp when: tap #register
+  - to: SignUp when: tap #register   // hand-off → Register journey
 }
 
-MODEL { $is_loading ==> false }
+MODEL { }   // static routing screen — no model state
 
 COPY { screen.title: "Welcome back" }
 
 UI {
   #screen: SafeArea { children: [#logo, #sign_in, #register] }
-  #logo:     Img    src:copy.brand.logo pos:top.center
-  #sign_in:  Btn    "Sign in"      pos:above(#register, md) on tap:goSignIn()
-  #register: Link   "Create account" pos:bottom.center      on tap:goRegister()
+  #logo:     Img  src:copy.brand.logo pos:top.center
+  #sign_in:  Btn  "Sign in"        pos:above(#register, md)
+  #register: Link "Create account" pos:bottom.center
 }
 
 STATES { initial: @idle  @idle { trigger: screen.view } }
 
 FLOW {
-  on tap #sign_in  do goSignIn()
-  on tap #register do goRegister()
+  on screen.view do set @idle
 }
 
 NAVIGATION {
-  on sign_in.tap  -> Login  { route: /login }
-  on register.tap -> SignUp { route: /signup }
+  on tap #sign_in  -> Login  { route: /login }
+  on tap #register -> SignUp { route: /signup }   // hand-off → Register journey
 }
 
 A11Y { focus_order: [#logo, #sign_in, #register]  touch_targets: >=44pt  contrast: wcag_aa }
@@ -93,7 +93,7 @@ EXIT {
   - to: ForgotPassword when: tap #forgot
 }
 
-# MODEL / UI / VALIDATION / ACTIONS / API as in assets/sample.login.ssdl …
+# MODEL / UI / FLOW / VALIDATION / API / ACCEPTANCE as in assets/sample.login.ssdl — excerpt shows only stitching + state machine
 
 STATES {
   initial: @idle
@@ -143,7 +143,6 @@ export { #app_tab_bar }
     TabItem label:copy.nav.search  icon:search  route:/search
     TabItem label:copy.nav.profile icon:profile route:/profile
   ]
-  on tab_change: switchTab()
 }
 ```
 
@@ -161,8 +160,8 @@ ENTRY {
   - from: AppLaunch when: authenticated       // warm start lands here, not Welcome
 }
 EXIT {
-  - to: Search  when: tap #app_tab_bar.search
-  - to: Profile when: tap #app_tab_bar.profile
+  - to: Search  when: tap #app_tab_bar.search   // reason: tab nav via imported #app_tab_bar item routes
+  - to: Profile when: tap #app_tab_bar.profile  // reason: tab nav via imported #app_tab_bar item routes
 }
 
 LIFECYCLE {
@@ -184,7 +183,12 @@ STATE_TRANSITIONS {
   @error   + tap #retry   -> @loading
 }
 
-# UI imports #app_tab_bar as persistent chrome; body switches on @state …
+ACTIONS {
+  loadDashboard()  { set @loading }                 // resolves to @ready / @empty / @error
+  refreshIfStale() { if stale: loadDashboard() }
+}
+
+# UI imports #app_tab_bar as persistent chrome; body switches on @state, with #retry in the @error view …
 
 A11Y { focus_order: [#app_tab_bar]  contrast: wcag_aa }
 

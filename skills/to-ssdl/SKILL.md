@@ -18,8 +18,8 @@ SSDL** — a navigable graph of screens, not an implementation. Do not generate 
 ## What "principal UI/UX engineer" changes about the output
 
 - **Journey-first.** Model the *operation* as a path a real user walks, not a dump of screens. A business
-  operation ("checkout", "onboarding", "dispute a charge") becomes a stitched journey: cart → address → payment →
-  review → confirmation.
+  operation ("Checkout", "Onboarding", "Dispute a charge") becomes a stitched journey: Cart → Address → Payment →
+  Review → Confirmation.
 - **Full state coverage.** Every screen accounts for loading, empty, error, success, and offline — not just the
   happy path. States and their transitions are explicit (`STATES` + `STATE_TRANSITIONS`).
 - **Platform-honest.** Respect mobile conventions (back behavior, safe areas, tab vs stack navigation, system
@@ -44,8 +44,8 @@ Before authoring anything:
    governs the language; this skill governs the journey/translation workflow.
 
 Read `references/ssdl-authoring.md` for grounding mechanics, file naming, mandatory sections, and per-section UX
-guidance. Read `references/navigation-stitching.md` for the core discipline of this skill — turning an operation
-into a closed, consistent screen graph.
+guidance. Read `references/navigation-stitching.md` for **what counts as one journey** (definition, sizing, examples) and
+the core discipline of this skill — turning an operation into a closed, consistent screen graph.
 
 ## Workflow — one journey at a time
 
@@ -103,8 +103,9 @@ journeys. Commit only when the user asks.
 
 ## Resources
 
-- **`references/navigation-stitching.md`** — modelling an operation as a closed screen graph; `ENTRY`/`EXIT`/
-  `NAVIGATION` reconciliation; back, deep links, cross-screen state and lifecycle.
+- **`references/navigation-stitching.md`** — what counts as one journey (definition, sizing, examples); modelling
+  an operation as a closed screen graph; `ENTRY`/`EXIT`/`NAVIGATION` reconciliation; back, deep links, cross-screen
+  state and lifecycle.
 - **`references/ssdl-authoring.md`** — grounding via the agent manifest, file naming, mandatory vs optional
   sections, fragment reuse, and a principal-UX pass over each SSDL section.
 - **`examples/onboarding-journey.md`** — a small worked journey showing the stitched output and its journey map.

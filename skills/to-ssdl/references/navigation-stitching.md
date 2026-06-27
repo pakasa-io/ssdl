@@ -4,17 +4,51 @@ This is the core discipline of `to-ssdl`. A business operation is not a pile of 
 walks**. Model it as a directed graph — screens are nodes, transitions are edges — then make that graph **closed
 and consistent** before writing a single file.
 
-## The mental model
+## What counts as one journey
+
+A **user journey is the connected set of screens a user moves through to accomplish a single goal** (one business
+operation) — stitched by navigation, with one or a few entry points, a terminal "done" (the success exit), and the
+branch / error / empty paths met along the way. It is the unit `to-ssdl` plans, generates, and reviews as one
+**slice**: bigger than a screen, smaller than the app, and walkable end-to-end so it can be verified in isolation
+(closed graph, decided back behavior, full state coverage).
 
 ```
-operation  →  journey (a named path through the product)
+operation  →  journey (a named path through the product)        ← the slice
 journey     →  screens (nodes)  +  transitions (edges)
-screen      →  lifecycle (states) + business ops (model/data/api/rules/actions)
+screen      →  flow (events→actions) + lifecycle (states over time) + business ops
 ```
 
-A single operation usually maps to one journey. Larger operations branch into sub-journeys that share screens (a
-"checkout" journey hands off to an "add payment method" sub-journey and returns). Name journeys after the operation
-("Checkout", "Onboarding", "Dispute a charge") so the graph is legible.
+A journey is the top of three nested levels — the "journeys / flows / lifecycles" being modelled:
+
+| Level | Scope | SSDL home | Example |
+|-------|-------|-----------|---------|
+| **Journey** | across screens (the slice) | `ROUTE`/`ENTRY`/`EXIT`/`NAVIGATION` | "Checkout" |
+| **Flow** | within a journey — reactions to user/backend | `FLOW` + `ACTIONS` | tap *Pay* → validate → `~> POST /charge` → on success → next |
+| **Lifecycle** | within one screen — behavior over time | `LIFECYCLE` + `STATES` + `STATE_TRANSITIONS` | load on view; `@idle→@loading→@error/@success` |
+
+**Sizing & boundaries.** Typically **3–7 screens**. A journey starts at an entry trigger (tab, deep link, push,
+hand-off, cold start) and ends at a terminal success (goal achieved — usually a replace-stack forward exit) plus
+its cancel/back/error exits. One screen alone is not a journey; the whole app is many journeys. Name each journey
+after its operation ("Checkout", "Onboarding", "Dispute a charge") so the graph is legible.
+
+**Sub-journeys.** A reusable detour a journey calls and returns from — e.g. "Add payment method", invoked by both
+Checkout and Profile. Author it once and reference it from each caller rather than duplicating screens.
+
+### Examples
+
+- **E-commerce** — separate journeys: *Browse & discover* (Home → Category → List → Product Detail) · *Checkout*
+  (Cart → Address → Payment → Review → Confirmation ⇒) · *Track order* (Orders → Detail → Tracking). Shared
+  sub-journeys: *Add address*, *Add payment method*. "Product Detail" alone is **not** a journey — it is one screen
+  inside Browse.
+- **Auth / onboarding** — three goals → three journeys (sharing Welcome/Login screens): *Sign in*
+  (Welcome → Login → Home ⇒) · *Register* (Welcome → SignUp → Verify → Profile setup → Home ⇒) · *Reset password*
+  (Login → Forgot → Sent → Reset → Login).
+- **Fintech** — *Send money* (Home → Recipient → Amount → Review → Confirm → Receipt ⇒) · *Dispute a charge*
+  (Transactions → Detail → Reason → Evidence → Submit → Confirmation ⇒). Sub-journey: *Add payee*.
+- **Ride-hailing** — *Book a ride* (Map → Destination → Choose ride → Confirm → Driver en route → Trip → Rate): one
+  goal, ~7 screens, with lifecycle-heavy live-update screens (*Driver en route*, *Trip*).
+
+`⇒` = replace-stack terminal exit (back must not re-enter the journey).
 
 ## The stitching directives
 
@@ -32,8 +66,9 @@ the route taken). They must agree.
 
 ## Closure rules — verify before generating, re-verify in review
 
-1. **Every `EXIT`/`NAVIGATION` destination is a real screen** in the graph, with a matching `ENTRY` on that screen
-   naming this screen as a source. No dangling edges.
+1. **Every `EXIT`/`NAVIGATION` destination is a real screen** — in this journey's graph (with a matching `ENTRY`
+   naming this screen as a source) or, for a **hand-off**, the entry screen of another named journey (mark it as
+   such). The only forbidden case is a dangling edge — a destination that exists in no journey.
 2. **Every screen is reachable** from at least one journey entry point. No orphan nodes.
 3. **`EXIT` ↔ `NAVIGATION` reconcile** (LINT-030): every `NAVIGATION` destination appears in `EXIT` and vice
    versa; any asymmetry carries a `// reason:` comment.
@@ -91,8 +126,9 @@ the entry points, the access level, and the replace-stack transitions are visibl
 
 ## Anti-patterns to avoid
 
-- Screens with `EXIT` to destinations that do not exist yet ("I'll add it later") — close the graph or stub the
-  node explicitly.
+- Screens with `EXIT` to a destination that exists in no journey ("I'll add it later") — close the graph, stub the
+  node, or mark it a hand-off to a named journey. (A hand-off to another journey's entry is fine; a destination in
+  no journey is not.)
 - Re-declaring the tab/nav bar in every screen instead of a fragment.
 - Modeling only the happy path — a transition out of `@error` and `@empty` is part of the journey.
 - Putting business guards in two places (`BUSINESS_RULES` and `ACTIONS`) — see the authority chain in
