@@ -1311,7 +1311,7 @@ Concise example:
 | `StepIndicator`  | Step/page progress — dots, numbers, or bars indicating position in a funnel or onboarding flow                                                                                                       |
 | `EmptyState`     | Structured state region — illustration + title + description + CTA. Use `type:` to express intent: `empty` (no data), `error` (load failed), `offline`, `no_results`, `permission_denied`, `custom`. |
 | `LoadingOverlay` | Full-screen blocking spinner with optional message and cancel                                                                                                                                        |
-| `Modal`          | General-purpose modal dialog                                                                                                                                                                         |
+| `Modal`          | Arbitrary-content modal container (see §16a.49)                                                                                                                                                                         |
 | `Dialog`         | Focused dialog — title + message + confirm button + optional cancel; use `destructive: true` for destructive confirm actions. Replaces `ConfirmDialog` and `DialogBox`.                              |
 | `ActionSheet`    | Option list presented as an overlay — iOS action sheet / Android bottom option menu                                                                                                                  |
 | `Sheet`          | Bottom sheet content container                                                                                                                                                                       |
@@ -2656,6 +2656,33 @@ sole indication that something is happening (no loading text or state change on 
 
 ---
 
+### 16a.49 Modal
+
+Arbitrary-content modal container. Unlike `Dialog` (the fixed title + message + confirm/cancel shape, §16a.27), `Modal`
+imposes no internal structure — you supply `children:`. Reach for `Modal` when the overlay hosts a form, a custom
+layout, or anything richer than a confirm prompt; reach for `Dialog` for the standard title/message/actions pattern.
+
+| Directive                 | Meaning                                                              |
+|---------------------------|----------------------------------------------------------------------|
+| `dismissible:`            | Boolean — show a close affordance / allow swipe-down (default `true`) |
+| `dismiss_on_outside_tap:` | Boolean — tapping the scrim closes the modal (default `true`)        |
+| `on dismiss:`             | Action fired when the modal is dismissed                             |
+
+**A11Y default role:** `dialog`. Trap focus inside while open; move focus in on present and return it to the trigger on
+dismiss.
+
+```ssdl
+#filters_modal: Modal {
+  in: #screen
+  layer: z:modal
+  visible_when: $filters_open
+  on dismiss: set $filters_open := false
+  children: [#filters_form, #apply_btn]
+}
+```
+
+---
+
 ## 17. UI directive grammar
 
 ```ssdl
@@ -2748,6 +2775,8 @@ ActionSheetDirective  := ("title:" String) | ("message:" String) | ("actions:" "
 DialogDirective       := ("title:" String) | ("message:" String) | ("confirm_label:" String)
                        | ("cancel_label:" String) | ("destructive:" Boolean)
                        // cancel_label omitted = single-button dialog
+ModalDirective        := ("dismissible:" Boolean) | ("dismiss_on_outside_tap:" Boolean)
+                       // Modal holds arbitrary content via children:; see §16a.49 — use Dialog for title+message+actions
 EmptyStateDirective   := ("type:" EmptyStateType) | ("illustration:" String) | ("title:" String)
                        | ("description:" String) | ("cta:" CTAExpr)  // see §48.28 for type values
 ProgressDirective     := ("style:" ProgressStyle) | ("value:" NumberOrField) | ("max:" Number) | ("indeterminate:" Boolean)
