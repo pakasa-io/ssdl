@@ -4872,7 +4872,7 @@ UI {
 
 ## 50. Full example: Login screen
 
-A complete, production-grade Login screen example is maintained in [`sample.login.ssdl`](sample.login.ssdl).
+A complete, production-grade Login screen example is maintained in [`assets/sample.login.ssdl`](assets/sample.login.ssdl).
 It demonstrates every major SSDL section (§7–§44) applied to a real screen, including feature flags,
 route params, model with derived fields, UI layout, states and state transitions, lifecycle handlers,
 validation (sync, cross-field, and async), business rules, pseudocode actions, flow, API contracts,
@@ -5195,14 +5195,14 @@ Use these rules when the spec contains overlapping directives.
 ## 53. Completeness checklist
 
 Run this before marking a screen spec `ready`. The full per-section checklist is maintained in
-[`completeness-checklist.md`](completeness-checklist.md).
+[`assets/completeness-checklist.md`](assets/completeness-checklist.md).
 
 ---
 
 ## 54. Linting rules for automated review
 
 The full catalogue of `LINT-xxx` rules — usable by a script, AI reviewer, or human reviewer — is maintained in
-[`lint-rules.md`](lint-rules.md).
+[`assets/lint-rules.md`](assets/lint-rules.md).
 
 ---
 
@@ -5226,7 +5226,7 @@ The full catalogue of `LINT-xxx` rules — usable by a script, AI reviewer, or h
 ## 56. Minimal production template
 
 A minimal, fill-in-the-blanks production template — every section in recommended order — is maintained in
-[`template.minimal.ssdl`](template.minimal.ssdl). Copy it as the starting point for a new screen spec.
+[`assets/template.minimal.ssdl`](assets/template.minimal.ssdl). Copy it as the starting point for a new screen spec.
 
 ---
 

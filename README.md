@@ -58,7 +58,7 @@ AC
   AC-01: Given valid credentials, When user taps #submit, Then LoginAPI.login is called
 ```
 
-See [`sample.login.ssdl`](sample.login.ssdl) for the same screen written out in **full mode** — every section populated, ready for handoff and QA.
+See [`assets/sample.login.ssdl`](assets/sample.login.ssdl) for the same screen written out in **full mode** — every section populated, ready for handoff and QA.
 
 ## Anatomy of a spec
 
@@ -102,18 +102,23 @@ import { #app_nav, #app_tab_bar } from "@shared/navigation.ssdl" at v2
 import { copy.common, ERR-NETWORK } from "@shared/design_system.ssdl" at v3
 ```
 
-Fragments carry their own `FRAGMENT` header and changelog, support `export` to control their public surface, version pinning via `at v<n>`, and `@alias` paths configured in `ssdl.config.json`. See **§4a / §4b** of the spec.
+Fragments carry their own `FRAGMENT` header and changelog, support `export` to control their public surface, version pinning via `at v<n>`, and `@alias` paths configured in `ssdl.config.json`. See **§45 / §46** of the spec.
 
 ## Repository contents
 
-| File | What it is |
+| Path | What it is |
 |------|------------|
-| [`ssdl.spec.md`](ssdl.spec.md) | The complete SSDL v1.5.0 language specification — 58 sections covering grammar, component taxonomy, every directive, linting rules, and adoption workflow. Generated from `spec/` by `bundle.py`. |
+| [`ssdl.spec.md`](ssdl.spec.md) | The complete SSDL v1.5.0 language specification — 58 sections covering grammar, component taxonomy, every directive, linting rules, and adoption workflow. **Generated** from `spec/` by `bundle.py`. |
+| [`spec/`](spec/) | The specification **source** — one file per section, one per component. Edit here, then re-bundle. |
+| [`bundle.py`](bundle.py) | The bundler — assembles `spec/` into `ssdl.spec.md` and `agent.manifest.yml`; `python3 bundle.py --check` verifies the round-trip. |
+| [`bundler.manifest.yml`](bundler.manifest.yml) | Bundler assembly order and component metadata (source; bundler-only). |
+| [`agent.manifest.yml`](agent.manifest.yml) | The agent index — *where to find what*, for progressive loading. **Generated.** |
+| [`AGENT_PROTOCOL.md`](AGENT_PROTOCOL.md) | The contract for AI agents and tooling that consume the split spec. |
+| [`assets/sample.login.ssdl`](assets/sample.login.ssdl) | A reference login screen in full mode — the canonical worked example (§50). |
+| [`assets/template.minimal.ssdl`](assets/template.minimal.ssdl) | A fill-in-the-blanks minimal screen template — copy it to start a new spec (§56). |
+| [`assets/lint-rules.md`](assets/lint-rules.md) | The `LINT-xxx` automated-review rule catalogue (§54). |
+| [`assets/completeness-checklist.md`](assets/completeness-checklist.md) | The pre-`ready` completeness checklist (§53). |
 | [`CHANGELOG.md`](CHANGELOG.md) | Per-version history of the SSDL specification. |
-| [`lint-rules.md`](lint-rules.md) | The `LINT-xxx` automated-review rule catalogue (§51 of the spec). |
-| [`completeness-checklist.md`](completeness-checklist.md) | The pre-`ready` completeness checklist (§50 of the spec). |
-| [`sample.login.ssdl`](sample.login.ssdl) | A reference login screen written in full mode — the canonical worked example. |
-| [`template.minimal.ssdl`](template.minimal.ssdl) | A fill-in-the-blanks minimal screen template — copy it to start a new spec. |
 | [`LICENSE`](LICENSE) | MIT. |
 
 > **Note:** This repository defines the *language* and provides a reference example. The spec describes conventions for tooling — file naming, an `ssdl.config.json` schema, and `LINT-xxx` rules — that parsers, linters, and generators are expected to implement; no such tooling ships here yet.

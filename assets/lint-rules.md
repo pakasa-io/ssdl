@@ -1,6 +1,6 @@
 # SSDL Linting Rules
 
-Automated-review rules for SSDL screen specs — usable by a script, AI reviewer, or human reviewer. These rule IDs (`LINT-xxx`) are referenced throughout the [SSDL specification](ssdl.spec.md); section references such as `§48.7` point back to it.
+Automated-review rules for SSDL screen specs — usable by a script, AI reviewer, or human reviewer. These rule IDs (`LINT-xxx`) are referenced throughout the [SSDL specification](../ssdl.spec.md); section references such as `§51.7` point back to it.
 
 ```txt
 LINT-001: Every component ID must be unique.
@@ -18,7 +18,7 @@ LINT-012: Every analytics event must avoid prohibited sensitive fields.
 LINT-013: A ready spec must have no unresolved OPEN_QUESTIONS (status: open or pending_*).
 LINT-014: UI child-parent references must be internally consistent.
 LINT-015: Visibility/enabled/loading conditions must reference valid fields or states.
-LINT-016: Every component with style: must use a token from the defined style vocabulary (§48.7).
+LINT-016: Every component with style: must use a token from the defined style vocabulary (§51.7).
 LINT-017: Every component that requires an OS permission must have a PERMISSIONS entry.
 LINT-018: Every feature-flag-gated component must have a FEATURE_FLAGS entry.
 LINT-019: Every List or Scroll component must specify pagination: strategy or explicitly set pagination: none.

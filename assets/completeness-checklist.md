@@ -1,6 +1,6 @@
 # SSDL Completeness Checklist
 
-Run through this before marking a screen spec `status: ready`. Part of the [SSDL specification](ssdl.spec.md).
+Run through this before marking a screen spec `status: ready`. Part of the [SSDL specification](../ssdl.spec.md).
 
 ## Imports
 
