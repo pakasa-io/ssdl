@@ -4,26 +4,28 @@ All notable changes to the **SSDL** (Single-Screen Specification Definition Lang
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and SSDL adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Section references (e.g. §4a) point to [`ssdl.spec.md`](ssdl.spec.md).
 
-## [Unreleased]
+## [1.5.0] - 2026-06-27
 
-Consistency and restructuring pass over the v1.4.0 spec. Release version number is TBD.
+A consistency, reorganization, and packaging pass over v1.4.0. Contains breaking changes.
 
 ### Changed
-- **Breaking — `ROUTE.auth` → `access:`** with values `public` / `authenticated` / `optional` (and `auth_roles` → `access_roles`); `API.auth` (request credential) is unchanged.
+- **Breaking — `ROUTE.auth` → `access:`** with values `public` / `authenticated` / `optional` (and `auth_roles` → `access_roles`); the API `auth:` request credential is unchanged.
 - **Breaking — collection iteration** consolidated on `data:`/`item:` with an `as $element` binding; `repeat_for:` and the `… map …` form removed.
-- Standardized the "not loading" form on `$is_loading ==> @loading` (+ `!$is_loading`); added a `text:` vs `label:` rule (§3.1).
+- **Reorganized** into a comprehension-first section order (META → PURPOSE/SCOPE → … → PERMISSIONS → FEATURE_FLAGS), made consistent across the file-structure rule, the sample, and the template, with a grouped Table of Contents. Section numbers changed accordingly.
+- Standardized the "not loading" form on `$is_loading ==> @loading`; added a `text:` vs `label:` rule.
 
 ### Added
-- **`~>`** async-call operator wired into the grammar (§5, §35.1, §36).
-- **`Banner { type: }`** (info/success/warning/error) documented; **Modal** given a crisp boundary vs **Dialog**; **Grid** and **HStack** entries (`masonry:`/`columns:`, `wrap:`/`row_gap:`) added to §16a.
+- **`~>`** async-call operator wired into the grammar.
+- **`Banner { type: }`** (info/success/warning/error); **Modal** given a crisp boundary vs **Dialog**; **Grid** and **HStack** component entries; `STATE_TRANSITIONS` added to the section enumerations.
+- **File-split distribution** — the spec is now maintained as per-section and per-component source files under `spec/`, assembled by `bundle.py` into `ssdl.spec.md` (a generated artifact) plus an `agent.manifest.yml` index. Consumption contract in `AGENT_PROTOCOL.md`.
 
 ### Removed
-- **Breaking** — the five deprecated component tombstones (`DragHandle`, `PullRefreshIndicator`, `Pager`, `WrapStack`, `Masonry`) and all references; §16a renumbered contiguously.
-- **§52 "Review pass"** (the historical v0→v1 log) and the `SSDL_EXTENSIONS.md` note.
+- **Breaking** — the five deprecated component tombstones (`DragHandle`, `PullRefreshIndicator`, `Pager`, `WrapStack`, `Masonry`) and all references.
+- The historical "Review pass" section and the `SSDL_EXTENSIONS.md` note.
 
 ### Docs
-- Extracted the completeness checklist, lint rules, and minimal template into standalone files (`completeness-checklist.md`, `lint-rules.md`, `template.minimal.ssdl`); §50/§51/§53 now point to them.
-- Collapsed the §48 layout/motion vocabulary to pointers into §19–§24 / §32.1 (the value-enum catalogue is retained).
+- Extracted the completeness checklist, lint rules, and minimal template into standalone files (`completeness-checklist.md`, `lint-rules.md`, `template.minimal.ssdl`); the corresponding sections now point to them.
+- Collapsed the layout/motion vocabulary into pointers to the authoritative directive sections (the value-enum catalogue is retained).
 
 ## [1.4.0]
 

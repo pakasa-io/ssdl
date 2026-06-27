@@ -2,7 +2,7 @@
 
 > A compact, human-readable, implementation-agnostic text format for specifying a single mobile app screen — its UI, layout, state, business logic, data contracts, analytics, accessibility, and acceptance criteria — in one file.
 
-[![Spec version](https://img.shields.io/badge/spec-v1.4.0-blue)](CHANGELOG.md)
+[![Spec version](https://img.shields.io/badge/spec-v1.5.0-blue)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Status](https://img.shields.io/badge/status-stable-brightgreen)](ssdl.spec.md)
 
@@ -108,7 +108,7 @@ Fragments carry their own `FRAGMENT` header and changelog, support `export` to c
 
 | File | What it is |
 |------|------------|
-| [`ssdl.spec.md`](ssdl.spec.md) | The complete SSDL v1.4.0 language specification — 55 sections covering grammar, component taxonomy, every directive, linting rules, and adoption workflow. |
+| [`ssdl.spec.md`](ssdl.spec.md) | The complete SSDL v1.5.0 language specification — 58 sections covering grammar, component taxonomy, every directive, linting rules, and adoption workflow. Generated from `spec/` by `bundle.py`. |
 | [`CHANGELOG.md`](CHANGELOG.md) | Per-version history of the SSDL specification. |
 | [`lint-rules.md`](lint-rules.md) | The `LINT-xxx` automated-review rule catalogue (§51 of the spec). |
 | [`completeness-checklist.md`](completeness-checklist.md) | The pre-`ready` completeness checklist (§50 of the spec). |
@@ -129,7 +129,7 @@ Examples: `screen.auth.login.ssdl`, `screen.checkout.payment-method.ssdl`, `shar
 
 ## Versioning
 
-The spec is versioned independently of any screen. The current language version is **1.4.0** — see [CHANGELOG.md](CHANGELOG.md) for the full per-version history. Individual screens and fragments declare their own version (`SCREEN Login v1`, `FRAGMENT navigation v2`), recorded in each file's `META.changelog` / `FRAGMENT_META.changelog`.
+The spec is versioned independently of any screen. The current language version is **1.5.0** — see [CHANGELOG.md](CHANGELOG.md) for the full per-version history. Individual screens and fragments declare their own version (`SCREEN Login v1`, `FRAGMENT navigation v2`), recorded in each file's `META.changelog` / `FRAGMENT_META.changelog`.
 
 ## License
 

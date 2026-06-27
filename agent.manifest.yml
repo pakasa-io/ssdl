@@ -1,5 +1,5 @@
 # agent.manifest.yml - generated index (see AGENT_PROTOCOL.md). Read once; load only what you need.
-version: "1.4.0"
+version: "1.5.0"
 
 bundles:
   ui_core:

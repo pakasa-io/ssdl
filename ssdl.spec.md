@@ -1,6 +1,6 @@
 # SSDL: Single-Screen Specification Definition Language
 
-**Version:** 1.4.0
+**Version:** 1.5.0
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 **Artifact type:** Markdown specification
 **Purpose:** Define a compact, expressive, text-first format for specifying a single mobile app screen, including UI/UX,
