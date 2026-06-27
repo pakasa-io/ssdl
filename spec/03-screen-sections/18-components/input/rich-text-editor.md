@@ -1,5 +1,3 @@
-### 19.20 RichTextEditor
-
 | Directive      | Meaning                                                                              |
 |----------------|--------------------------------------------------------------------------------------|
 | `toolbar:`     | `bold` / `italic` / `underline` / `bullet_list` / `numbered_list` / `link` / `image` |

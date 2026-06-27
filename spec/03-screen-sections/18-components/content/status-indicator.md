@@ -1,5 +1,3 @@
-### 19.6 StatusIndicator
-
 | Directive | Meaning                                                              |
 |-----------|----------------------------------------------------------------------|
 | `status:` | `online` / `offline` / `busy` / `away` / `do_not_disturb` / `custom` |

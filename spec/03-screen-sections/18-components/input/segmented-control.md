@@ -1,5 +1,3 @@
-### 19.16 SegmentedControl
-
 | Directive   | Meaning                                                         |
 |-------------|-----------------------------------------------------------------|
 | `segments:` | Array of `{ label, value }` or bound collection                 |

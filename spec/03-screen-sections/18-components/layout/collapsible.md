@@ -1,5 +1,3 @@
-### 19.41 Collapsible
-
 | Directive    | Meaning                                       |
 |--------------|-----------------------------------------------|
 | `open:`      | Boolean field or state controlling visibility |

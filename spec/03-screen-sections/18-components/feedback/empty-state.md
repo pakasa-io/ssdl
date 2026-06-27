@@ -1,5 +1,3 @@
-### 19.24 EmptyState
-
 Single component replaces `EmptyState` and `ErrorState`. The `type:` directive expresses semantic intent and drives
 default illustration selection in the design system — omit `illustration:` to use the type default.
 

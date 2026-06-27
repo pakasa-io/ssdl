@@ -1,5 +1,3 @@
-### 19.30 NetworkBanner
-
 | Directive           | Meaning                          |
 |---------------------|----------------------------------|
 | `offline_msg:`      | Copy when network is unavailable |

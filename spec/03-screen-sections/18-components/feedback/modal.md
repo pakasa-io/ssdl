@@ -1,5 +1,3 @@
-### 19.44 Modal
-
 Arbitrary-content modal container. Unlike `Dialog` (the fixed title + message + confirm/cancel shape, §19.26), `Modal`
 imposes no internal structure — you supply `children:`. Reach for `Modal` when the overlay hosts a form, a custom
 layout, or anything richer than a confirm prompt; reach for `Dialog` for the standard title/message/actions pattern.

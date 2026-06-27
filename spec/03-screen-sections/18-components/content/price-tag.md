@@ -1,5 +1,3 @@
-### 19.8 PriceTag
-
 | Directive   | Meaning                                           |
 |-------------|---------------------------------------------------|
 | `amount:`   | Current price — Money or `$field`                 |

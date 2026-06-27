@@ -1,5 +1,3 @@
-### 19.10 QRCode
-
 | Directive           | Meaning                                  |
 |---------------------|------------------------------------------|
 | `value:`            | String encoded in the QR                 |

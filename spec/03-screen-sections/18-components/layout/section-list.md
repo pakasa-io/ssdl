@@ -1,5 +1,3 @@
-### 19.37 SectionList
-
 | Directive         | Meaning                                                                 |
 |-------------------|-------------------------------------------------------------------------|
 | `sections:`       | Bound collection of `{ title, data }`                                   |

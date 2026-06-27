@@ -1,5 +1,3 @@
-### 19.17 ToggleGroup
-
 | Directive    | Meaning                                            |
 |--------------|----------------------------------------------------|
 | `options:`   | Array of `{ label, icon?, value }`                 |

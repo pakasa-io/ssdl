@@ -1,5 +1,3 @@
-### 19.35 StickyHeader
-
 | Directive            | Meaning                                                      |
 |----------------------|--------------------------------------------------------------|
 | `collapse_height:`   | Height of the pinned collapsed state                         |

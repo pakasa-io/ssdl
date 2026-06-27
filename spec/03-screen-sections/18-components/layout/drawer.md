@@ -1,5 +1,3 @@
-### 19.34 Drawer and DrawerItem
-
 **Drawer:**
 
 | Directive                | Meaning                                              |

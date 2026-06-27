@@ -1,5 +1,3 @@
-### 19.28 Progress
-
 `Progress` uses `style:` to choose between linear and circular rendering.
 
 | Directive        | Meaning                                                                         |

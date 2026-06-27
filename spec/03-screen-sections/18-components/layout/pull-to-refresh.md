@@ -1,5 +1,3 @@
-### 19.31 PullToRefresh
-
 | Directive           | Meaning                                                                   |
 |---------------------|---------------------------------------------------------------------------|
 | `on refresh:`       | Action when pull gesture completes — required (LINT-039)                  |

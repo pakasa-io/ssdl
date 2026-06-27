@@ -1,5 +1,3 @@
-### 19.33 TabBar and TabItem
-
 **TabBar:**
 
 | Directive        | Meaning                                                    |

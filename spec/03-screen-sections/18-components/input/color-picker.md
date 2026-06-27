@@ -1,5 +1,3 @@
-### 19.18 ColorPicker
-
 | Directive  | Meaning                                          |
 |------------|--------------------------------------------------|
 | `mode:`    | `hex` / `rgb` / `hsl` / `hsb` / `palette`        |

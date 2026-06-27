@@ -1,5 +1,3 @@
-### 19.39 SearchBar
-
 | Directive      | Meaning                              |
 |----------------|--------------------------------------|
 | `placeholder:` | Hint text                            |

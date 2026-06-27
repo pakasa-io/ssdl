@@ -1,5 +1,3 @@
-### 19.43 InlineLoader
-
 Reuses standard directives only (`size:`, `visible_when:`). No component-specific directives.
 
 **A11Y default role:** `none` (decorative) when scoped to a row or card that itself has a loading state — the parent's

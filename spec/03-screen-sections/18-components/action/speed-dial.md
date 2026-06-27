@@ -1,5 +1,3 @@
-### 19.21 SpeedDial and SpeedDialItem
-
 **SpeedDial:**
 
 | Directive    | Meaning                                    |

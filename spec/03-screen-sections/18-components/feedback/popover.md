@@ -1,5 +1,3 @@
-### 19.25 Popover
-
 | Directive                 | Meaning                                               |
 |---------------------------|-------------------------------------------------------|
 | `anchor:`                 | `#component_id` the popover is attached to            |

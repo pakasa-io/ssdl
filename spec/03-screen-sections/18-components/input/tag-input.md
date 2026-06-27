@@ -1,5 +1,3 @@
-### 19.13 TagInput
-
 | Directive        | Meaning                                     |
 |------------------|---------------------------------------------|
 | `max_tags:`      | Maximum number of tags                      |

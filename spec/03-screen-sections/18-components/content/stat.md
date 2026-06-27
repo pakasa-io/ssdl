@@ -1,5 +1,3 @@
-### 19.7 Stat
-
 | Directive      | Meaning                                     |
 |----------------|---------------------------------------------|
 | `value:`       | Primary number — Number, Money, or `$field` |

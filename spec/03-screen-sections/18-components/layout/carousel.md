@@ -1,5 +1,3 @@
-### 19.36 Carousel
-
 | Directive          | Meaning                                                                                                                                            |
 |--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 | `fill:`            | Boolean — when `true`, items fill the full viewport (full-bleed page mode); when `false` (default), items show a partial peek of adjacent items    |

@@ -1,5 +1,3 @@
-### 19.40 Accordion
-
 | Directive         | Meaning                                                           |
 |-------------------|-------------------------------------------------------------------|
 | `items:`          | Array of `{ header, content: #component_id }` or bound collection |

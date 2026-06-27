@@ -56,7 +56,7 @@ sections:
   route: spec/03-screen-sections/09-route.md
   screen-declaration: spec/02-notation/06-screen-declaration.md
   ssdl-shorthand-symbols: spec/02-notation/03-ssdl-shorthand-symbols.md
-  state: spec/03-screen-sections/31-state.md
+  states: spec/03-screen-sections/31-state.md
   template: spec/06-adoption/56-minimal-production-template.md
   top-level-grammar: spec/02-notation/05-top-level-grammar.md
   traceability: spec/06-adoption/57-spec-to-implementation-traceability.md

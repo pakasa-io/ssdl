@@ -1,5 +1,3 @@
-### 19.4 Tag
-
 | Directive    | Meaning                                               |
 |--------------|-------------------------------------------------------|
 | `text:`      | Tag text — copy key or inline string                  |

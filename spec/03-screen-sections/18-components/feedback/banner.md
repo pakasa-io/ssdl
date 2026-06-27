@@ -1,5 +1,3 @@
-### 19.45 Banner
-
 Inline or global message strip. `type:` sets the severity, which drives the color, the default leading icon, and the
 accessibility announcement priority.
 

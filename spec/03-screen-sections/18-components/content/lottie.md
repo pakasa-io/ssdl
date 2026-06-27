@@ -1,5 +1,3 @@
-### 19.1 Lottie
-
 | Directive      | Meaning                                            |
 |----------------|----------------------------------------------------|
 | `source:`      | Path or asset key to the `.json` Lottie file       |

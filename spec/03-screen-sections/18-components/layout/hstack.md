@@ -1,5 +1,3 @@
-### 19.47 HStack
-
 | Directive  | Meaning                                             |
 |------------|-----------------------------------------------------|
 | `wrap:`    | Boolean — wrap children onto multiple lines         |

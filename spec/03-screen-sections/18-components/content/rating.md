@@ -1,5 +1,3 @@
-### 19.3 Rating
-
 | Directive | Meaning                              |
 |-----------|--------------------------------------|
 | `value:`  | Score — Number or `$field`           |

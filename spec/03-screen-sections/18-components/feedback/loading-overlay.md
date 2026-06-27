@@ -1,5 +1,3 @@
-### 19.29 LoadingOverlay
-
 | Directive     | Meaning                         |
 |---------------|---------------------------------|
 | `message:`    | Optional text below the spinner |

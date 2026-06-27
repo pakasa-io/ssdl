@@ -1,5 +1,3 @@
-### 19.27 StepIndicator
-
 | Directive  | Meaning                                               |
 |------------|-------------------------------------------------------|
 | `steps:`   | Total step count                                      |

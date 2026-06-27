@@ -1,5 +1,3 @@
-### 19.26 Dialog
-
 Replaces `ConfirmDialog` and `DialogBox`. Single type handles all focused dialog patterns: omit `cancel_label:` for a
 single-button informational dialog; add `cancel_label:` for a two-button choice; set `destructive: true` to style the
 confirm action in a destructive color.

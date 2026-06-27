@@ -1,5 +1,3 @@
-### 19.12 PhoneInput
-
 | Directive            | Meaning                                               |
 |----------------------|-------------------------------------------------------|
 | `default_country:`   | ISO 3166-1 alpha-2 code — pre-selected country        |

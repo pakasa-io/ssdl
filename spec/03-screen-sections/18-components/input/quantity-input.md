@@ -1,5 +1,3 @@
-### 19.14 QuantityInput
-
 | Directive | Meaning                      |
 |-----------|------------------------------|
 | `bind:`   | Binds to an `Integer` field  |

@@ -1,5 +1,3 @@
-### 19.22 ContextMenu and ContextMenuItem
-
 **ContextMenu:**
 
 | Directive  | Meaning                                 |

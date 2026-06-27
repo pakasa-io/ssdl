@@ -1,5 +1,3 @@
-### 19.15 LocationInput
-
 | Directive       | Meaning                                                              |
 |-----------------|----------------------------------------------------------------------|
 | `bias_country:` | ISO country code — biases results                                    |
