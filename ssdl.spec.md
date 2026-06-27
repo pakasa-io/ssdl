@@ -2647,7 +2647,7 @@ StateDirective        := ("checked_when:" | "selected_when:" | "disabled_when:")
 TestDirective         := "test_id:" String
 ConditionDirective    := ("visible_when:" | "hidden_when:" | "enabled_when:"
                        | "loading_when:" | "readonly_when:") Condition
-AnimationDirective    := "animate:" AnimationExpr                          // see §32, §48.10
+AnimationDirective    := "animate:" AnimationExpr                          // see §32.1
 TransitionDirective   := "transition:" "shared(" SharedElementKey ")"      // see §32.2; SharedElementKey must match the destination screen's declaration
 EventDirective        := "on" EventName ":" Effect ["when" Condition]
 ChildrenDirective     := "children:" "[" ComponentId* "]"
@@ -4728,162 +4728,36 @@ labels, errors, and acceptance criteria.
 
 ## 48. UI directive vocabulary reference
 
-This section is a flat quick-reference listing of every directive token and value defined throughout the body of this
-specification. **The body sections (§19–§26, §32, etc.) are authoritative.** When a token in this reference differs from
-its definition in the body, the body definition — including its semantics, rationale, and examples — governs. This
-reference is a convenience; it is not independently normative.
+Layout and motion vocabulary (positions, sizes, alignment, spacing, layers, behaviors, animation) is defined — with
+semantics and examples — in the body (§19–§24, §32); the subsections below for those families are pointers, not
+independent definitions. The remaining subsections (§48.7 onward) are the authoritative catalog of component value
+enums referenced from §16a. When a token here differs from the body, **the body governs.**
 
 ### 48.1 Positions
 
-```txt
-top
-bottom
-left
-right
-center
-top.left
-top.center
-top.right
-middle.left
-middle.center
-middle.right
-bottom.left
-bottom.center
-bottom.right
-screen.*
-parent.*
-safe.*
-content.*
-keyboard.*
-below(#id)
-below(#id, spacing)
-above(#id)
-left_of(#id)
-right_of(#id)
-before(#id)
-after(#id)
-between(#a, #b)
-near(#id)
-inside(#id, anchor)
-overlay(#id, anchor)
-sticky(anchor)
-floating(anchor)
-```
+Anchor, relative (`below(#id)`, `right_of(#id)`…), inside/overlay, sticky, and floating positions — defined with
+semantics and examples in **§19**.
 
 ### 48.2 Sizes
 
-```txt
-xxs
-xs
-sm
-md
-lg
-xl
-xxl
-hug
-wrap
-fill
-full
-screen
-content
-w:fill
-w:hug
-w:wrap
-w:content
-w:full
-w:screen
-h:fill
-h:hug
-h:wrap
-h:content
-h:sm
-h:lg
-same(#id)
-same_w(#id)
-same_h(#id)
-smaller(#id)
-smaller(#id, n)
-larger(#id)
-larger(#id, n)
-half_of(#id)
-third_of(#id)
-min(a, b)
-max(a, b)
-```
+Base size tokens (`xxs`–`xxl`), width/height hints (`w:fill`, `h:hug`…), and relative sizing (`same_w(#id)`,
+`smaller(#id, n)`…) — defined in **§21**.
 
 ### 48.3 Alignment
 
-```txt
-start
-center
-end
-stretch
-main:start
-main:center
-main:end
-main:space_between
-main:space_around
-cross:start
-cross:center
-cross:end
-cross:stretch
-align_to(#id.left)
-align_to(#id.right)
-align_to(#id.center)
-baseline_of(#id)
-```
+Simple, axis (`main:`/`cross:`), and reference alignment (`align_to(#id.left)`, `baseline_of(#id)`) — defined in **§20**.
 
 ### 48.4 Spacing
 
-```txt
-none
-xxs
-xs
-sm
-md
-lg
-xl
-xxl
-gap:<token>
-pad:<token>
-margin:<token>
-inset:<token>
-pad: top:<token> right:<token> bottom:<token> left:<token>
-margin: top:<token> bottom:<token>
-inset: bottom:safe
-```
+Spacing tokens (`none`, `xxs`–`xxl`) and directional `pad:`/`margin:`/`inset:` forms — defined in **§22**.
 
 ### 48.5 Layers
 
-```txt
-above(#id)
-below(#id)
-z:0
-z:1
-z:overlay
-z:modal
-z:toast
-```
+Layer and z-order tokens (`above(#id)`, `below(#id)`, `z:0`–`z:toast`) — defined in **§23**.
 
 ### 48.6 Behaviors
 
-```txt
-safe_area_aware
-scroll_when_keyboard_open
-avoid_keyboard
-dismiss_keyboard_on_scroll
-collapse_on_small_screen
-stack_on_small_screen
-hide_on_compact
-sticky_on_scroll
-pin_footer_on_tall_screen
-preserve_scroll_position
-pull_to_refresh
-paged_scroll
-snap_to_item
-swipe_to_dismiss
-drag_to_reorder
-```
+Runtime layout behaviors (`safe_area_aware`, `avoid_keyboard`, `stack_on_small_screen`…) — defined in **§24**.
 
 ### 48.7 Style tokens (typography)
 
@@ -4952,44 +4826,8 @@ off               // Explicitly disable autocomplete
 
 ### 48.10 Animation tokens
 
-**Enter/exit:**
-
-```txt
-fade_in(speed)
-fade_out(speed)
-slide_up(speed)
-slide_down(speed)
-slide_from_left(speed)
-slide_from_right(speed)
-slide_to_left(speed)
-slide_to_right(speed)
-scale_in(speed)
-scale_out(speed)
-bounce(speed)
-shake(speed)
-instant
-none
-```
-
-**Loop (for persistent states):**
-
-```txt
-shimmer
-pulse
-spin
-```
-
-**Speed tokens:** `xs` (~100ms), `sm` (~200ms), `md` (~300ms), `lg` (~500ms), `xl` (~700ms)
-
-**Shared element transition (component-level):**
-
-```txt
-transition: shared(<key>)
-```
-
-Use `transition: shared(<key>)` on a component to declare it participates in a shared-element transition. The `<key>`
-string must match the declaration on the corresponding component in the destination screen. Both source and destination
-screens must declare the same key; mismatched keys produce no animation. See §32.2 for ANIMATION-level declaration.
+Enter/exit, loop, speed, and easing animation tokens are defined in **§32.1**; `transition: shared(<key>)` for
+shared-element transitions is covered in **§32.2**.
 
 ### 48.11 Map zoom levels
 
