@@ -81,7 +81,7 @@ Only **`SCREEN`, `ROUTE`, `MODEL`, `UI`, `STATES`, `FLOW`, and `ACCEPTANCE`** ar
 | `!` / `?` | Required / optional | `$email!`, `$avatar_url?` |
 | `#id` | UI component ID | `#login_btn` |
 | `@state` | Screen state | `@loading` |
-| `:=` | Default value / assignment | `$loading := false` |
+| `:=` | Default value / assignment | `$remember_me := false` |
 | `==>` | Derived / computed field | `$can_submit ==> $form_valid && !$is_loading` |
 | `=>` | Effect / result | `401 => show #error_banner` |
 | `->` | Navigation / transition | `login.success -> Home` |
@@ -108,9 +108,12 @@ Fragments carry their own `FRAGMENT` header and changelog, support `export` to c
 
 | File | What it is |
 |------|------------|
-| [`ssdl.spec.md`](ssdl.spec.md) | The complete SSDL v1.4.0 language specification — 56 sections covering grammar, component taxonomy, every directive, linting rules, and adoption workflow. |
+| [`ssdl.spec.md`](ssdl.spec.md) | The complete SSDL v1.4.0 language specification — 55 sections covering grammar, component taxonomy, every directive, linting rules, and adoption workflow. |
 | [`CHANGELOG.md`](CHANGELOG.md) | Per-version history of the SSDL specification. |
+| [`lint-rules.md`](lint-rules.md) | The `LINT-xxx` automated-review rule catalogue (§51 of the spec). |
+| [`completeness-checklist.md`](completeness-checklist.md) | The pre-`ready` completeness checklist (§50 of the spec). |
 | [`sample.login.ssdl`](sample.login.ssdl) | A reference login screen written in full mode — the canonical worked example. |
+| [`template.minimal.ssdl`](template.minimal.ssdl) | A fill-in-the-blanks minimal screen template — copy it to start a new spec. |
 | [`LICENSE`](LICENSE) | MIT. |
 
 > **Note:** This repository defines the *language* and provides a reference example. The spec describes conventions for tooling — file naming, an `ssdl.config.json` schema, and `LINT-xxx` rules — that parsers, linters, and generators are expected to implement; no such tooling ships here yet.

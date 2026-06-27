@@ -104,7 +104,7 @@ screen.onboarding.choose-plan.ssdl
 | `?`                  | Optional field or param                                  | `$avatar_url?`                                    |
 | `#id`                | UI component ID                                          | `#login_btn`                                      |
 | `@state`             | Screen state                                             | `@loading`                                        |
-| `:=`                 | Assignment or default value                              | `$loading := false`                               |
+| `:=`                 | Assignment or default value                              | `$remember_me := false`                           |
 | `==>`                | Derived/computed field                                   | `$can_submit ==> $form_valid && !$is_loading`        |
 | `=>`                 | Effect/result                                            | `401 => show #error_banner`                       |
 | `->`                 | Navigation or transition                                 | `login.success -> Home`                           |
@@ -1355,7 +1355,7 @@ Concise example:
 
 ## 16a. Component-specific directives and examples
 
-This section documents directives, A11Y defaults, and SSDL examples for every non-trivial component added in v1.2.0.
+This section documents directives, A11Y defaults, and SSDL examples for every non-trivial component.
 Standard directives (`pos`, `size`, `bind`, `visible_when`, `on tap`, `a11y`, etc.) always apply. Only
 component-specific additions are listed per entry.
 
@@ -2593,6 +2593,52 @@ assertively). Add `a11y: announce_when_visible` on banners shown conditionally s
   text: $error_msg
   visible_when: $error_msg.exists
   a11y: announce_when_visible
+}
+```
+
+---
+
+### 16a.46 Grid
+
+| Directive  | Meaning                                                               |
+|------------|-----------------------------------------------------------------------|
+| `columns:` | Number of columns                                                     |
+| `masonry:` | Boolean — variable item heights (Pinterest-style); off = uniform rows |
+| `data:`    | Bound collection (with `as` element binding)                          |
+| `item:`    | Item template component ID                                            |
+
+**A11Y note:** with `masonry: true`, VoiceOver/TalkBack read items in source order regardless of visual column — this is
+expected.
+
+```ssdl
+#photo_grid: Grid {
+  in: #content
+  data: $photos as $photo
+  item: #photo_card
+  columns: 2
+  masonry: true
+  gap: xs
+  empty_state: #photos_empty
+}
+```
+
+---
+
+### 16a.47 HStack
+
+| Directive  | Meaning                                             |
+|------------|-----------------------------------------------------|
+| `wrap:`    | Boolean — wrap children onto multiple lines         |
+| `row_gap:` | Spacing between wrapped lines (companion to `gap:`) |
+
+```ssdl
+#filter_chips: HStack {
+  in: #filter_bar
+  wrap: true
+  gap: xs
+  row_gap: xs
+  data: $active_filters as $filter
+  item: #filter_chip
 }
 ```
 
@@ -4731,7 +4777,7 @@ labels, errors, and acceptance criteria.
 Layout and motion vocabulary (positions, sizes, alignment, spacing, layers, behaviors, animation) is defined — with
 semantics and examples — in the body (§19–§24, §32); the subsections below for those families are pointers, not
 independent definitions. The remaining subsections (§48.7 onward) are the authoritative catalog of component value
-enums referenced from §16a. When a token here differs from the body, **the body governs.**
+enums referenced from §15, §16a, and §26. When a token here differs from the body, **the body governs.**
 
 ### 48.1 Positions
 
@@ -5039,216 +5085,19 @@ Use these rules when the spec contains overlapping directives.
 
 ## 50. Completeness checklist
 
-Use this before marking a screen spec `ready`.
-
-### 50.0 Imports
-
-- [ ] All `import` declarations include `at v<n>` version pins.
-- [ ] Every `@alias` path is defined in `ssdl.config.json`.
-- [ ] No circular import dependencies (LINT-047).
-- [ ] All imported items are referenced somewhere in the spec body (LINT-053).
-- [ ] No two imports conflict on the same ID (LINT-049).
-- [ ] `include` directives appear before screen-specific overrides in their section (LINT-052).
-
-### 50.1 Identity and scope
-
-- [ ] Screen has a stable `SCREEN` name and version.
-- [ ] `META.status` is correct.
-- [ ] `META.changelog` entry exists for this version.
-- [ ] `PURPOSE` is clear.
-- [ ] `SCOPE.in` and `SCOPE.out` prevent accidental feature creep.
-
-### 50.2 Routing, navigation, and access
-
-- [ ] Route path is defined.
-- [ ] Required route params are marked with `!`.
-- [ ] Optional route params are marked with `?`.
-- [ ] Entry points are listed.
-- [ ] Exit points are listed.
-- [ ] Back behavior is specified.
-- [ ] Deep links are included if relevant.
-- [ ] `PERMISSIONS` section is present if the screen accesses camera, location, notifications, contacts, or biometrics.
-- [ ] `FEATURE_FLAGS` section is present if any component visibility is flag-gated.
-
-### 50.3 Data and model
-
-- [ ] All UI-bound fields exist in `MODEL`.
-- [ ] Derived fields are defined with `==>`.
-- [ ] Defaults are defined for fields that need them.
-- [ ] Data sources are listed in `DATA.read`.
-- [ ] Cache strategy is specified for remote reads.
-- [ ] Writes/storage effects are listed in `DATA.write`.
-
-### 50.4 UI and layout
-
-- [ ] Every UI component has a unique `#id`.
-- [ ] Every non-root component has an `in:` parent.
-- [ ] Parent `children` lists are consistent with child `in:` values.
-- [ ] Critical layout intent uses `pos`, `align`, `size`, and spacing directives.
-- [ ] All text-bearing components have a `style:` token.
-- [ ] Keyboard behavior is specified for form screens.
-- [ ] Loading, empty, error, and success states are represented where relevant.
-- [ ] Collection components specify `pagination:` strategy.
-- [ ] Collection components specify `empty_state:`.
-
-### 50.5 States and lifecycle
-
-- [ ] `STATES` covers all meaningful screen states.
-- [ ] `STATES` declares `initial:`.
-- [ ] `STATE_TRANSITIONS` is present for screens with three or more states.
-- [ ] Every state in `STATES` is reachable via `STATE_TRANSITIONS`.
-- [ ] `LIFECYCLE` is present for screens that need to respond to re-view, foreground, or background events.
-- [ ] Lifecycle handlers that perform async work specify failure behavior.
-
-### 50.6 Animation
-
-- [ ] `ANIMATION` is present if the screen uses non-trivial enter/exit motion.
-- [ ] Every animation has a `reduced_motion` alternative.
-- [ ] Shared element transitions are matched between source and destination screens.
-
-### 50.7 Logic and flow
-
-- [ ] User events are represented in `FLOW`.
-- [ ] Complex behavior has pseudocode in `ACTIONS`.
-- [ ] Business rules are testable and referenced by behavior.
-- [ ] Async behavior includes loading and failure handling.
-- [ ] State transitions are clear.
-- [ ] No guard is encoded redundantly in both `BUSINESS_RULES` and `ACTIONS`.
-
-### 50.8 API and errors
-
-- [ ] API request shape is defined.
-- [ ] API success response shape is defined.
-- [ ] Known error statuses are defined.
-- [ ] Every API error status has an `ERRORS` entry or an inline `// handled:` annotation.
-- [ ] Timeout/network/offline behavior is specified where relevant.
-
-### 50.9 Copy, analytics, accessibility, QA
-
-- [ ] User-facing strings are listed in `COPY` or intentionally inline.
-- [ ] Parameterized copy uses ICU format where needed.
-- [ ] Analytics events include trigger and properties.
-- [ ] `ANALYTICS.privacy` block is present for auth/payment/personal-data screens.
-- [ ] `ANALYTICS.privacy.consent` is declared for screens subject to consent requirements.
-- [ ] Analytics events declare `dedup:` strategy.
-- [ ] Accessibility focus order is listed.
-- [ ] Screen reader labels are included for key elements.
-- [ ] Non-obvious semantic roles are declared in `A11Y.roles`.
-- [ ] `contrast:` is specified in `A11Y`.
-- [ ] `NAVIGATION` destinations are consistent with `EXIT` destinations.
-- [ ] `ACTORS.systems` entries correspond to API or DATA entries.
-- [ ] Acceptance criteria cover happy path, validations, errors, navigation, re-view behavior, and accessibility.
+Run this before marking a screen spec `ready`. The full per-section checklist is maintained in
+[`completeness-checklist.md`](completeness-checklist.md).
 
 ---
 
 ## 51. Linting rules for automated review
 
-These rules can be used by a script, AI reviewer, or human reviewer.
-
-```txt
-LINT-001: Every component ID must be unique.
-LINT-002: Every referenced component ID must exist.
-LINT-003: Every referenced model field must exist in MODEL.
-LINT-004: Every referenced COPY key must exist in COPY.
-LINT-005: Every required route param must be consumed, passed onward, or intentionally ignored.
-LINT-006: Every API error status must have an ERRORS entry or an inline // handled: annotation.
-LINT-007: Every primary action must have at least one acceptance criterion.
-LINT-008: Every form field must have validation or be explicitly marked validation:none or no_validation.
-LINT-009: Every loading async action must specify a loading state.
-LINT-010: Every critical navigation path must appear in NAVIGATION and ACCEPTANCE.
-LINT-011: Every interactive component must have an accessibility label or inherit one from visible text.
-LINT-012: Every analytics event must avoid prohibited sensitive fields.
-LINT-013: A ready spec must have no unresolved OPEN_QUESTIONS (status: open or pending_*).
-LINT-014: UI child-parent references must be internally consistent.
-LINT-015: Visibility/enabled/loading conditions must reference valid fields or states.
-LINT-016: Every component with style: must use a token from the defined style vocabulary (§48.7).
-LINT-017: Every component that requires an OS permission must have a PERMISSIONS entry.
-LINT-018: Every feature-flag-gated component must have a FEATURE_FLAGS entry.
-LINT-019: Every List or Scroll component must specify pagination: strategy or explicitly set pagination: none.
-LINT-020: OPEN_QUESTIONS with blocks: ready prevent status: ready.
-LINT-021: Every LIFECYCLE event handler must reference a defined ACTIONS function or inline effect.
-LINT-022: ANALYTICS.privacy block is required when the screen processes auth, payment, or personal data.
-LINT-023: STATE_TRANSITIONS must be present when STATES defines three or more states.
-LINT-024: Every animate: or transition: directive must have a corresponding reduced_motion alternative in ANIMATION.
-LINT-025: Screen variants (extends) must not redefine SCREEN version; OVERRIDE is the only permitted diff mechanism.
-LINT-026: Derived fields (==>) must not form circular dependencies; each derived field's dependency graph must be acyclic.
-LINT-027: STATES must declare initial: when STATE_TRANSITIONS is present; the declared initial state must be defined in STATES.
-LINT-028: ANALYTICS.privacy.consent must be present when ANALYTICS.privacy block is required (auth/payment/personal-data screens).
-LINT-029: Every state defined in STATES must be reachable via at least one transition in STATE_TRANSITIONS (when STATE_TRANSITIONS is present).
-LINT-030: Every destination in NAVIGATION must also appear in EXIT (and vice versa); entries present in one but absent from the other must have a // reason: comment.
-LINT-031: Every component ID referenced in FLOW event targets must exist in the UI section.
-LINT-032: Every entry in ACTORS.systems must correspond to an API or DATA section entry, or carry a // reason: comment explaining the exception.
-LINT-033: OTPInput must declare length:.
-LINT-034: Carousel must declare on slide_change: or explicitly annotate // on slide_change: not tracked.
-LINT-035: NavBar must declare title:.
-LINT-036: TabBar must declare items: and on tab_change:.
-LINT-037: EmptyState must declare title: and cta:.
-LINT-038: Progress must declare value: or indeterminate: true; declaring neither is a spec error.
-LINT-039: PullToRefresh must declare on refresh: and refreshing: bound to a model field or state.
-LINT-040: Scanner must declare on scan: and have a corresponding PERMISSIONS.camera entry.
-LINT-041: MapView with interactive: true displaying user location must have a PERMISSIONS.location.when_in_use entry.
-LINT-042: Table with selection: single or selection: multi must declare on row_tap:.
-LINT-043: Accordion must declare on expand: or annotate // on expand: not tracked.
-LINT-044: Drawer must declare on open: and on close:.
-LINT-045: SearchBar must declare on cancel:.
-LINT-046: ContextMenu ContextMenuItem components must each declare on tap:.
-
-// Import and fragment rules
-LINT-047: The import graph (across all screen and fragment files) must be acyclic. Circular imports are reported on the file that closes the cycle.
-LINT-048: Every path referenced in an import or include declaration must resolve to an existing fragment file.
-LINT-049: Two import declarations that bring in the same ID conflict — the later import wins; both declarations receive a warning. Resolve cleanly using as aliasing.
-LINT-050: Importing a non-exported item from a fragment that has explicit export declarations is an error.
-LINT-051: A local section declaration that shadows an imported item of the same ID receives a warning — local wins, but the shadow should be intentional.
-LINT-052: A section declaration that appears before an include and is overridden by that include receives a warning. Move declarations after include if they are intended as overrides.
-LINT-053: An imported item that is never referenced anywhere in the importing screen spec (not in UI children:, not in FLOW, not in ACTIONS, not in ERRORS, not in COPY, etc.) should be removed or annotated // imported for: <reason>.
-```
+The full catalogue of `LINT-xxx` rules — usable by a script, AI reviewer, or human reviewer — is maintained in
+[`lint-rules.md`](lint-rules.md).
 
 ---
 
-## 52. Review pass: completeness, ambiguity, and gap resolution
-
-A final review pass was applied to this specification. The findings below describe changes from v0 (draft) to v1.0.0.
-
-| Finding                                                                                | Risk                                                                  | Resolution applied                                                                                                            |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| UI directives could be confused with exact pixel constraints.                          | Teams might over-specify implementation details.                      | Defined positioning, sizing, and spacing as semantic hints, not exact coordinates.                                            |
-| Parent/child relationships could be ambiguous when both `in:` and `children` are used. | Component tree could become inconsistent.                             | Added conflict-resolution rule: explicit `in:` wins.                                                                          |
-| `pos` inside stack containers could imply absolute positioning.                        | Designers and engineers could interpret layout differently.           | Added rule: container order wins for stack/list containers; `pos` remains a hint.                                             |
-| Sizing tokens lacked clear interpretation.                                             | `lg`, `hug`, and `fill` could be interpreted inconsistently.          | Added token meaning table and axis-specific examples.                                                                         |
-| `style` directive used in full example but undefined in grammar.                       | AI and human readers invent their own interpretation.                 | Added `StyleDirective` to §17, typography token vocabulary to §48.7.                                                          |
-| `no_validation` referenced in LINT-008 but undefined.                                  | Spec fails its own lint rule.                                         | Defined `validation: none` syntax on components and `$field: no_validation` in VALIDATION.                                    |
-| STATE_TRANSITIONS and STATES overlapped with no defined authority.                     | Conflicting state machine representations.                            | Declared STATE_TRANSITIONS as machine-readable canonical form; STATES as human summary.                                       |
-| FLOW, BUSINESS_RULES, and ACTIONS encoded the same guards redundantly.                 | Triple-encoding of conditions caused drift between sections.          | Defined authority chain in §28.3: ACTIONS owns execution, BUSINESS_RULES owns intent, FLOW owns event wiring.                 |
-| Event vocabulary missing long_press, swipe, appear, disappear.                         | Mobile-critical events could not be expressed.                        | Added `on long_press:`, `on swipe_*:`, `on appear:`, `on disappear:`, `on select:` to §27 using unified `on <event>:` syntax. |
-| No screen lifecycle events beyond screen.view.                                         | Re-appear, foreground, and background behaviors underdefined.         | Added LIFECYCLE section (§29) with event vocabulary.                                                                          |
-| No OS permissions declaration.                                                         | Permission-denied states omitted from specs.                          | Added PERMISSIONS section (§30).                                                                                              |
-| No feature flag declaration.                                                           | Flag-gated components scattered across visible_when without registry. | Added FEATURE_FLAGS section (§31).                                                                                            |
-| No animation directives.                                                               | Motion intent lived in Figma only; reduced_motion had no spec basis.  | Added ANIMATION section (§32) and animate:/transition: directives to component grammar.                                       |
-| COPY had no interpolation or pluralization format.                                     | Parameterized strings implemented inconsistently.                     | Added ICU message format guidance in §14.1.                                                                                   |
-| Keyboard type vocabulary informal.                                                     | Keyboard types varied by author.                                      | Added keyboard: directive to component grammar and vocabulary in §48.8.                                                       |
-| DATA section had no cache strategy.                                                    | Engineers made cache decisions without product input.                 | Added cache strategy vocabulary and examples in §13.1.                                                                        |
-| OPEN_QUESTIONS was free text.                                                          | Questions stayed open without ownership.                              | Added structured format with owner, blocks, and status fields in §43.                                                         |
-| ERR-500 declared in API but absent from ERRORS in full example.                        | Full example failed its own LINT-006.                                 | Added ERR-500 to the full example ERRORS section.                                                                             |
-| ANALYTICS_PRIVACY was a separate top-level block inconsistently placed.                | Privacy rules drifted from the analytics events they governed.        | Moved to analytics { privacy { ... } } sub-block in §39.                                                                      |
-| No screen variant/inheritance mechanism.                                               | Similar screens required full duplication.                            | Added extends declaration and OVERRIDE block in §44.                                                                          |
-| No contrast token in A11Y.                                                             | Accessibility contrast requirement ambiguous.                         | Added contrast: wcag_aa / wcag_aaa to A11Y vocabulary and example.                                                            |
-| List/collection behavior underdefined.                                                 | Pagination, selection, empty state left to engineers.                 | Added pagination, selection, empty_state, and `on scroll.end:` to collection binding in §26.                                  |
-| ACTORS.systems lacked type guidance.                                                   | System actors disconnected from API section.                          | Added guidance: each system actor should correspond to an API or DATA entry.                                                  |
-| Version upgrade path not addressed.                                                    | Teams had no way to track spec changes.                               | Added META.changelog field in §7.                                                                                             |
-
-Known gaps identified in the v0→v1 review were resolved in v1.0.0. A subsequent pass (v1.1.0) addressed additional gaps:
-cross-field and async validation, animation easing and `then` chaining, semantic roles in A11Y, analytics deduplication
-and consent, unified `on event:` syntax, `screen.view` / `screen.first_view` lifecycle vocabulary, `initial:` state
-declaration, `fallback:` for feature flags, and expanded component directives (`autocomplete`, `error:`, `test_id:`,
-`min/max/step`, `checked_when`, etc.).
-
-SSDL is intentionally extensible. Teams should document additions in a project-level `SSDL_EXTENSIONS.md` covering
-custom token names, component taxonomy additions, project-specific lint rules, and platform-specific directive
-overrides.
-
----
-
-## 53. Recommended adoption workflow
+## 52. Recommended adoption workflow
 
 1. Draft the screen in compact mode.
 2. Declare `FEATURE_FLAGS` and `PERMISSIONS` before expanding the model.
@@ -5265,212 +5114,20 @@ overrides.
 
 ---
 
-## 54. Minimal production template
+## 53. Minimal production template
 
-```ssdl
-SCREEN <ScreenName> v1
-
-META {
-  feature: <FeatureName>
-  owner: <Team>
-  platform: all
-  priority: P0|P1|P2
-  status: draft
-  changelog: { v1: "Initial draft" }
-}
-
-FEATURE_FLAGS {
-  // <flag_name> { when enabled: ... default: disabled }
-}
-
-PURPOSE {
-  <Why this screen exists.>
-}
-
-SCOPE {
-  in:
-    - <Included behavior>
-  out:
-    - <Excluded behavior>
-}
-
-ROUTE {
-  path: /<route>
-  type: screen
-  access: public|authenticated|optional
-  params: { }
-}
-
-PERMISSIONS {
-  // <permission_type> { required_for: [...] request_when: ... if denied: ... }
-}
-
-ENTRY {
-  - from: <Source>
-    when: <condition>
-}
-
-EXIT {
-  - to: <Destination>
-    when: <condition>
-}
-
-MODEL {
-  $field!: Type := default
-  $optional?: Type
-  $computed ==> expression
-}
-
-DATA {
-  source: local|remote|mixed|none
-  read:
-    - <source>
-  write:
-    - <destination>
-}
-
-COPY {
-  screen.title: "<Title>"
-}
-
-UI {
-  #screen: SafeArea {
-    size: w:screen h:screen
-    behavior: safe_area_aware
-    children: [#content]
-  }
-
-  #content: Scroll {
-    in: #screen
-    pos: safe.top
-    size: w:fill h:fill
-    pad: lg
-    behavior: scroll_when_keyboard_open
-  }
-}
-
-STATES {
-  initial: @idle
-
-  @idle { trigger: screen.view }
-  @loading { trigger: async.started }
-  @error { trigger: async.failed }
-  @success { trigger: async.succeeded }
-}
-
-STATE_TRANSITIONS {
-  @idle + tap #primary_btn -> @loading
-  @loading + api.success -> @success
-  @loading + api.failure -> @error
-}
-
-LIFECYCLE {
-  on screen.view do onScreenView()
-  on app.foreground do onAppForeground()
-}
-
-ANIMATION {
-  screen {
-    enter: slide_from_right(md)
-    exit: slide_to_left(md)
-    reduced_motion: instant
-  }
-}
-
-VALIDATION {
-  VAL-01: <condition> => "<message>"
-}
-
-BUSINESS_RULES {
-  BR-01: when <condition> => <effect>
-}
-
-ACTIONS {
-  onScreenView() {
-    set @idle
-  }
-
-  primaryAction() {
-    if <guard>:
-      return
-
-    set @loading
-    response = await <API_CALL>
-
-    match response.status:
-      200 => set @success
-      else => set @error
-  }
-}
-
-FLOW {
-  on screen.view do set @idle
-  on tap #primary_btn when <condition> do primaryAction()
-}
-
-API {
-  ApiName.method {
-    request: METHOD /path
-    auth: bearer|none
-    cache: none|stale_while_revalidate
-    success 200: { }
-    errors: {
-      500: server_error   // handled: ERR-500
-    }
-    timeout_ms: 10000
-    retry: none
-  }
-}
-
-NAVIGATION {
-  on <event> -> <Destination> { route: /path }
-}
-
-ANALYTICS {
-  event_name {
-    trigger: <event>
-    props: { }
-  }
-
-  privacy {
-    never_send: []
-  }
-}
-
-A11Y {
-  screen_title: "<Title>"
-  focus_order: []
-  touch_targets: >=44pt
-  dynamic_type: supported up_to 200%
-  contrast: wcag_aa
-  reduced_motion: no_required_motion
-}
-
-ERRORS {
-  ERR-500 {
-    when: ApiName.method returns 5xx
-    ui: show #error_banner with copy.common.error.generic
-    recovery: user retries
-  }
-}
-
-ACCEPTANCE {
-  AC-01:
-    Given <context>
-    When <action>
-    Then <expected result>
-}
-```
+A minimal, fill-in-the-blanks production template — every section in recommended order — is maintained in
+[`template.minimal.ssdl`](template.minimal.ssdl). Copy it as the starting point for a new screen spec.
 
 ---
 
-## 55. Spec-to-implementation traceability
+## 54. Spec-to-implementation traceability
 
 SSDL assigns stable IDs to business rules (`BR-xx`), validation rules (`VAL-xx`), error cases (`ERR-xx`), and acceptance
 criteria (`AC-xx`). Teams should carry these IDs into implementation to make the connection between spec and code
 auditable.
 
-### 55.1 Recommended traceability patterns
+### 54.1 Recommended traceability patterns
 
 **In source code** — reference the rule ID in a comment near the implementation:
 
@@ -5503,7 +5160,7 @@ describe('AC-07: successful login stores tokens and navigates', () => {
 feat(login): implement BR-03 redirect-after-login and VAL-01/02 email validation
 ```
 
-### 55.2 What NOT to put in implementation code
+### 54.2 What NOT to put in implementation code
 
 - Do not replicate spec prose in code comments — the spec is the source of truth for intent.
 - Do not embed `AC-xx` IDs in production runtime code — they belong in tests and tooling only.
@@ -5511,7 +5168,7 @@ feat(login): implement BR-03 redirect-after-login and VAL-01/02 email validation
 
 ---
 
-## 56. Closing recommendation
+## 55. Closing recommendation
 
 Use SSDL as a shared contract. Keep visual design details in your design tool, but use SSDL to make the behavior, data,
 layout intent, state transitions, lifecycle, permissions, animations, edge cases, analytics, accessibility, and QA
