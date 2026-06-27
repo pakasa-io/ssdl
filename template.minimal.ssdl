@@ -9,10 +9,6 @@ META {
   changelog: { v1: "Initial draft" }
 }
 
-FEATURE_FLAGS {
-  // <flag_name> { when enabled: ... default: disabled }
-}
-
 PURPOSE {
   <Why this screen exists.>
 }
@@ -31,10 +27,6 @@ ROUTE {
   params: { }
 }
 
-PERMISSIONS {
-  // <permission_type> { required_for: [...] request_when: ... if denied: ... }
-}
-
 ENTRY {
   - from: <Source>
     when: <condition>
@@ -43,6 +35,14 @@ ENTRY {
 EXIT {
   - to: <Destination>
     when: <condition>
+}
+
+PERMISSIONS {
+  // <permission_type> { required_for: [...] request_when: ... if denied: ... }
+}
+
+FEATURE_FLAGS {
+  // <flag_name> { when enabled: ... default: disabled }
 }
 
 MODEL {

@@ -9,6 +9,113 @@ data/API contracts, analytics, accessibility, errors, and acceptance criteria.
 
 ---
 
+## Contents
+
+**I · Introduction**
+
+- [0. Executive summary](#0-executive-summary)
+- [1. Design goals](#1-design-goals)
+- [2. Core concepts](#2-core-concepts)
+
+**II · Notation & file anatomy**
+
+- [3. SSDL shorthand symbols](#3-ssdl-shorthand-symbols)
+- [4. File-level structure](#4-file-level-structure)
+- [5. Top-level grammar](#5-top-level-grammar)
+- [6. Screen declaration](#6-screen-declaration)
+
+**III · Screen sections**
+
+*Identity, scope & setup*
+
+- [7. META section](#7-meta-section)
+- [8. PURPOSE and SCOPE sections](#8-purpose-and-scope-sections)
+- [9. ROUTE section](#9-route-section)
+- [10. ACTORS section](#10-actors-section)
+- [11. ENTRY and EXIT sections](#11-entry-and-exit-sections)
+- [12. PERMISSIONS section](#12-permissions-section)
+- [13. FEATURE_FLAGS section](#13-feature_flags-section)
+
+*Data & content*
+
+- [14. MODEL section](#14-model-section)
+- [15. DATA section](#15-data-section)
+- [16. COPY section](#16-copy-section)
+
+*UI & layout*
+
+- [17. UI section overview](#17-ui-section-overview)
+- [18. Component taxonomy](#18-component-taxonomy)
+- [19. Component-specific directives and examples](#19-component-specific-directives-and-examples)
+- [20. UI directive grammar](#20-ui-directive-grammar)
+- [21. Nesting and component relationships](#21-nesting-and-component-relationships)
+- [22. Positioning directives](#22-positioning-directives)
+- [23. Alignment directives](#23-alignment-directives)
+- [24. Sizing directives](#24-sizing-directives)
+- [25. Spacing directives](#25-spacing-directives)
+- [26. Layering and z-order directives](#26-layering-and-z-order-directives)
+- [27. Behavior directives](#27-behavior-directives)
+- [28. Visibility, enabled, and loading directives](#28-visibility-enabled-and-loading-directives)
+- [29. Binding directives](#29-binding-directives)
+- [30. Event directives](#30-event-directives)
+
+*State & lifecycle*
+
+- [31. State section](#31-state-section)
+- [32. LIFECYCLE section](#32-lifecycle-section)
+
+*Motion*
+
+- [33. ANIMATION section](#33-animation-section)
+
+*Logic*
+
+- [34. Validation section](#34-validation-section)
+- [35. Business rules section](#35-business-rules-section)
+- [36. ACTIONS section with pseudocode](#36-actions-section-with-pseudocode)
+- [37. FLOW section](#37-flow-section)
+
+*Backend & navigation*
+
+- [38. API section](#38-api-section)
+- [39. NAVIGATION section](#39-navigation-section)
+
+*Instrumentation & accessibility*
+
+- [40. ANALYTICS section](#40-analytics-section)
+- [41. A11Y section](#41-a11y-section)
+- [42. ERRORS section](#42-errors-section)
+
+*QA & open items*
+
+- [43. ACCEPTANCE section](#43-acceptance-section)
+- [44. OPEN_QUESTIONS section](#44-open_questions-section)
+
+**IV · Reuse & composition**
+
+- [45. Import and Include](#45-import-and-include)
+- [46. Fragment file format](#46-fragment-file-format)
+- [47. Screen variants and inheritance](#47-screen-variants-and-inheritance)
+
+**V · Patterns & reference**
+
+- [48. Compact mode](#48-compact-mode)
+- [49. Default mobile screen layout pattern](#49-default-mobile-screen-layout-pattern)
+- [50. Full example: Login screen](#50-full-example-login-screen)
+- [51. UI directive vocabulary reference](#51-ui-directive-vocabulary-reference)
+- [52. Ambiguity and conflict-resolution rules](#52-ambiguity-and-conflict-resolution-rules)
+- [53. Completeness checklist](#53-completeness-checklist)
+- [54. Linting rules for automated review](#54-linting-rules-for-automated-review)
+
+**VI · Adoption**
+
+- [55. Recommended adoption workflow](#55-recommended-adoption-workflow)
+- [56. Minimal production template](#56-minimal-production-template)
+- [57. Spec-to-implementation traceability](#57-spec-to-implementation-traceability)
+- [58. Closing recommendation](#58-closing-recommendation)
+
+---
+
 ## 0. Executive summary
 
 SSDL, short for **Single-Screen Specification Definition Language**, is a lightweight text format for describing mobile
@@ -241,14 +348,14 @@ import { ERR-NETWORK, ERR-TIMEOUT } from "@shared/errors.ssdl" at v1
 import { handleNetworkError } from "@shared/actions.ssdl" at v1
 
 META { ... }
-FEATURE_FLAGS { ... }
 PURPOSE { ... }
 SCOPE { ... }
 ROUTE { ... }
-PERMISSIONS { ... }
 ACTORS { ... }
 ENTRY { ... }
 EXIT { ... }
+PERMISSIONS { ... }
+FEATURE_FLAGS { ... }
 MODEL { ... }
 DATA { ... }
 COPY { ... }
@@ -277,443 +384,10 @@ sections, even if some are short.
 **Section placement rationale:**
 
 - `import` declarations immediately after `SCREEN` — shared dependencies are visible before any sections reference them.
-- `FEATURE_FLAGS` immediately after `META` — flags affect the entire screen scope and should be visible early.
-- `PERMISSIONS` after `ROUTE` — OS access is a routing-level concern.
+- `PURPOSE` and `SCOPE` immediately after `META` — orient the reader on what the screen is and isn't before any config.
+- `PERMISSIONS` and `FEATURE_FLAGS` after `ENTRY`/`EXIT` — describe the screen first, then its OS-access and feature gating.
 - `LIFECYCLE` after `STATES` — lifecycle events drive state transitions.
 - `ANIMATION` after `LIFECYCLE` — motion is tied to state/lifecycle changes.
-
----
-
-## 4a. Import and Include
-
-SSDL supports importing named items from shared fragment files and inlining shared section content. This eliminates
-duplication of common components, copy, error handlers, API contracts, and accessibility standards across many screen
-specs.
-
----
-
-### 4a.1 Import declarations
-
-`import` declarations appear immediately after the `SCREEN` declaration and before any sections. They load named
-definitions from a fragment file into the importing screen's namespace.
-
-```ssdl
-SCREEN OrderDetail v1
-
-// Named imports — specific items
-import { #app_nav, #app_tab_bar } from "@shared/navigation.ssdl" at v2
-import { copy.common, copy.errors } from "@shared/copy.ssdl" at v1
-import { ERR-NETWORK, ERR-TIMEOUT, ERR-500 } from "@shared/errors.ssdl" at v1
-import { LoginAPI } from "@shared/apis/auth.ssdl" at v1
-import { handleNetworkError, retryWithBackoff } from "@shared/actions.ssdl" at v1
-import { VAL-email, VAL-phone } from "@shared/validators.ssdl" at v1
-
-META { ... }
-```
-
-**Import syntax forms:**
-
-```ssdl
-// Named import — one or more specific items
-import { ItemA, ItemB } from "path/to/fragment.ssdl"
-
-// Named import with version pin
-import { ItemA } from "path/to/fragment.ssdl" at v2
-
-// Named import with alias — rename on import
-import { ItemA } as MyAlias from "path/to/fragment.ssdl" at v1
-
-// Namespace import — all items under a COPY prefix
-import copy.common from "@shared/copy.ssdl" at v1
-import copy.errors from "@shared/copy.ssdl" at v1
-
-// Multi-alias import
-import { LoginAPI } as Auth, { LogoutAPI } as Deauth from "@shared/apis/auth.ssdl" at v1
-```
-
-**Braced and unbraced COPY imports are equivalent.** The braced form `import { copy.common, copy.errors } from "..."`
-and the unbraced form `import copy.common from "..."` both import COPY namespaces and produce the same result. The
-unbraced form is shorthand for a single namespace; use the braced form to import multiple namespaces from the same
-fragment, or to mix COPY namespaces with non-COPY items in one statement.
-
----
-
-### 4a.2 What can be imported
-
-| Importable from fragment | Examples                                    |
-|--------------------------|---------------------------------------------|
-| UI component definitions | `#app_nav`, `#app_tab_bar`, `#product_card` |
-| COPY namespaces or keys  | `copy.common`, `copy.common.error.network`  |
-| API contracts            | `LoginAPI`, `OrdersAPI`                     |
-| ERRORS entries           | `ERR-NETWORK`, `ERR-TIMEOUT`, `ERR-500`     |
-| ACTIONS functions        | `handleNetworkError`, `retryWithBackoff`    |
-| VALIDATION rules         | `VAL-email`, `VAL-phone`                    |
-| MODEL field sets         | `$auth_fields`, `$pagination_fields`        |
-
-**Not importable** (too screen-specific): `SCREEN`, `META`, `STATES`, `STATE_TRANSITIONS`, `FLOW`, `LIFECYCLE`,
-`ACCEPTANCE`, `PURPOSE`, `SCOPE`.
-
----
-
-### 4a.3 Path resolution
-
-SSDL supports two path forms:
-
-**Relative paths** — always valid, no tooling required:
-
-```ssdl
-import { #app_nav } from "../shared/navigation.ssdl"
-import { copy.common } from "./copy/common.ssdl"
-```
-
-**`@alias` paths** — project-root shorthand configured in `ssdl.config.json`:
-
-```ssdl
-import { #app_nav } from "@shared/navigation.ssdl"
-import { copy.common } from "@copy/common.ssdl"
-```
-
-**`ssdl.config.json`** — place at the project root (alongside your `.specs/` directory):
-
-```json
-{
-  "version": "1",
-  "aliases": {
-    "@shared": "./specs/shared",
-    "@copy": "./specs/shared/copy",
-    "@standards": "./specs/standards",
-    "@apis": "./specs/shared/apis"
-  }
-}
-```
-
-If no `ssdl.config.json` exists, `@` aliases are treated as unresolvable (LINT-048 error).
-
----
-
-### 4a.4 Version pinning
-
-Append `at v<n>` to pin the import to a declared fragment version:
-
-```ssdl
-import { copy.common } from "@shared/copy.ssdl" at v2
-```
-
-**Rules:**
-
-- Version must match a version declared in the fragment's `FRAGMENT_META.changelog`.
-- When the fragment releases a new version, importing screens receive a LINT warning until they update their pin or
-  explicitly re-confirm the current pin.
-- Omitting `at` is allowed but triggers a LINT warning in production-ready specs (status: ready) — unpinned imports are
-  a maintenance risk.
-
----
-
-### 4a.5 Aliasing
-
-Use `as` to rename an imported item in the importing screen's namespace:
-
-```ssdl
-// Avoid a name collision
-import { ERR-NETWORK } as ERR-NET from "@shared/errors.ssdl" at v1
-
-// Use a generic API under a screen-specific name
-import { GenericAuthAPI } as LoginAPI from "@shared/apis.ssdl" at v1
-```
-
-Aliased names must not conflict with other local or imported names (LINT-049).
-
----
-
-### 4a.6 Conflict resolution
-
-| Situation                              | Resolution                                                                                                                                                         |
-|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Import vs local declaration of same ID | **Local wins.** The imported item is the fallback; the local definition overrides it. LINT-051 warns that the import is being shadowed — confirm it's intentional. |
-| Two imports declaring the same ID      | **Later import wins.** LINT-049 warns on the conflict — use `as` to resolve cleanly.                                                                               |
-| Import vs `include` of same key        | **Local `include` wins if it appears after;** import wins if `include` appears before. See §4a.8 for ordering.                                                     |
-
----
-
-### 4a.7 Importing UI components — import ≠ usage
-
-Importing a component definition does **not** place it in the screen's layout tree. After importing, you must still
-reference the component explicitly in `children:` or via `in:`.
-
-```ssdl
-import { #app_nav } from "@shared/navigation.ssdl" at v2
-
-UI {
-  #screen: SafeArea {
-    children: [#app_nav, #content]   // explicit reference required
-  }
-  // No need to re-declare #app_nav — its definition comes from the import
-}
-```
-
-You may override imported component directives by re-declaring the component locally:
-
-```ssdl
-// Override just the title of the imported nav bar
-#app_nav: NavBar {
-  title: copy.orders.screen_title   // local override; all other directives from the import
-}
-```
-
----
-
-### 4a.8 `include` — inline section content
-
-`include` embeds the full content of a named section from a fragment file directly into the importing screen's
-corresponding section. Use it for shared standards and defaults that should apply verbatim.
-
-```ssdl
-A11Y {
-  include "@standards/mobile_a11y.ssdl"   // inlines touch_targets:, contrast:, reduced_motion:
-
-  // Screen-specific additions after include
-  screen_title: "Order Detail"
-  focus_order: [#order_header, #items_list, #checkout_btn]
-}
-
-ANALYTICS {
-  order_viewed { trigger: screen.first_view }
-
-  privacy {
-    include "@standards/gdpr_privacy.ssdl"   // inlines consent: required_before_fire, never_send: [...]
-    user_id: allowed_after_auth              // screen-specific addition
-  }
-}
-
-ERRORS {
-  include "@shared/common_errors.ssdl"   // inlines ERR-NETWORK, ERR-TIMEOUT, ERR-500
-  ERR-404 {                              // screen-specific addition
-    when: OrdersAPI.get returns 404
-    ui: show #load_error with type: not_found
-    recovery: user navigates back
-  }
-}
-```
-
-**Ordering rule:** declarations that appear **after** `include` override included values. Declarations that appear *
-*before** `include` are overridden by it. When in doubt, place `include` first and local overrides after.
-
-```ssdl
-A11Y {
-  contrast: wcag_aaa                    // declared BEFORE include — will be overridden
-  include "@standards/mobile_a11y.ssdl" // declares contrast: wcag_aa — wins over the above
-  screen_title: "Orders"                // declared AFTER include — local value wins
-}
-```
-
-LINT-052 warns when a pre-include declaration is silently overridden.
-
----
-
-### 4a.9 Transitive dependencies
-
-When a fragment imports from another fragment, those transitive imports are **resolved automatically** (so no
-missing-dependency errors), but they are **not visible** in the importing screen unless explicitly re-imported.
-
-```
-Screen A
-  imports #app_nav from fragment/nav.ssdl
-    fragment/nav.ssdl imports #back_btn from fragment/buttons.ssdl
-
-// Screen A can use #app_nav (direct import)
-// Screen A CANNOT use #back_btn directly — it must add its own import if needed
-```
-
----
-
-### 4a.10 Importable MODEL field sets
-
-A fragment may export a named set of MODEL fields that a screen can import as a group:
-
-```ssdl
-// In @shared/model_fragments.ssdl
-export $auth_fields := {
-  $is_authenticated: Boolean := false
-  $auth_token?: Token
-  $user_id?: ID
-}
-
-// In a screen
-import { $auth_fields } from "@shared/model_fragments.ssdl" at v1
-
-MODEL {
-  use $auth_fields             // expands all fields from the set into this MODEL
-  $email!: Email := ""         // screen-specific additions
-}
-```
-
-The `use` keyword inside `MODEL` expands an imported field set in-place.
-
----
-
-## 4b. Fragment file format
-
-Fragment files contain shared, reusable SSDL definitions. They are not screen specs — they have no `SCREEN` declaration,
-no `META`, no `ACCEPTANCE`. They are identified by a `FRAGMENT` header.
-
-**File naming convention:**
-
-```txt
-<category>.<name>.fragment.ssdl
-```
-
-Examples:
-
-```txt
-shared.navigation.fragment.ssdl
-shared.copy.common.fragment.ssdl
-shared.errors.common.fragment.ssdl
-standards.mobile_a11y.fragment.ssdl
-apis.auth.fragment.ssdl
-```
-
----
-
-### 4b.1 Fragment header
-
-Every fragment file starts with a `FRAGMENT` declaration and a `FRAGMENT_META` block:
-
-```ssdl
-FRAGMENT navigation v2
-
-FRAGMENT_META {
-  owner: Platform/Design System Team
-  last_updated: 2026-06-09
-  changelog: {
-    v2: "Add #app_tab_bar; rename #legacy_nav → #app_nav"
-    v1: "Initial shared navigation components"
-  }
-}
-```
-
-The `FRAGMENT` version is what importing screens reference with `at v<n>`.
-
----
-
-### 4b.2 Allowed sections in a fragment
-
-| Allowed                      | Not allowed                    |
-|------------------------------|--------------------------------|
-| `UI` (component definitions) | `SCREEN`                       |
-| `COPY`                       | `META`                         |
-| `API`                        | `STATES` / `STATE_TRANSITIONS` |
-| `ERRORS`                     | `FLOW`                         |
-| `ACTIONS`                    | `LIFECYCLE`                    |
-| `VALIDATION`                 | `ACCEPTANCE`                   |
-| `MODEL` (field set exports)  | `PURPOSE` / `SCOPE`            |
-| `A11Y` (standards blocks)    | `ROUTE` / `NAVIGATION`         |
-| `ANALYTICS` (privacy blocks) | `FEATURE_FLAGS`                |
-
----
-
-### 4b.3 Export declarations
-
-By default, everything in a fragment is importable. To restrict the public surface, add explicit `export` declarations —
-once any `export` appears, only exported items are importable.
-
-```ssdl
-FRAGMENT navigation v2
-
-FRAGMENT_META { ... }
-
-export #app_nav
-export #app_tab_bar
-// #nav_back_btn is private — used internally, not importable by consuming screens
-
-UI {
-  #app_nav: NavBar { ... }
-  #app_tab_bar: TabBar { ... }
-  #nav_back_btn: IconBtn { ... }   // internal helper
-}
-```
-
-LINT-050: importing a non-exported item from a fragment with explicit exports is an error.
-
----
-
-### 4b.4 Re-export (barrel fragments)
-
-A fragment may re-export items from other fragments to create a single import point for a design system:
-
-```ssdl
-FRAGMENT design_system v3
-
-FRAGMENT_META {
-  owner: Platform Team
-  changelog: { v3: "Add copy.errors namespace", v2: "...", v1: "..." }
-}
-
-import { #app_nav, #app_tab_bar } from "./navigation.fragment.ssdl" at v2
-import { copy.common, copy.errors } from "./copy.fragment.ssdl" at v1
-import { ERR-NETWORK, ERR-TIMEOUT, ERR-500 } from "./errors.fragment.ssdl" at v1
-
-// Re-export everything for consumers
-export #app_nav
-export #app_tab_bar
-export copy.common
-export copy.errors
-export ERR-NETWORK
-export ERR-TIMEOUT
-export ERR-500
-```
-
-Consuming screens then import from one place:
-
-```ssdl
-import { #app_nav, copy.common, ERR-NETWORK } from "@shared/design_system.ssdl" at v3
-```
-
----
-
-### 4b.5 Fragments importing fragments
-
-Fragments may import from other fragments using the same syntax as screens. The same transitive dependency and circular
-import rules apply — the full import graph across all fragment and screen files must be acyclic (LINT-047).
-
----
-
-### 4b.6 Fragment file example
-
-```ssdl
-FRAGMENT common_errors v1
-
-FRAGMENT_META {
-  owner: Platform/API Team
-  last_updated: 2026-06-09
-  changelog: {
-    v1: "Initial common error handlers — network, timeout, server"
-  }
-}
-
-export ERR-NETWORK
-export ERR-TIMEOUT
-export ERR-500
-
-ERRORS {
-  ERR-NETWORK {
-    when: network unavailable
-    ui: show #error_banner with copy.common.error.network
-    recovery: retry after network returns
-  }
-
-  ERR-TIMEOUT {
-    when: request exceeded timeout_ms threshold
-    ui: show #error_banner with copy.common.error.generic
-    recovery: user retries
-  }
-
-  ERR-500 {
-    when: API returns 5xx
-    ui: show #error_banner with copy.common.error.generic
-    recovery: user retries; do not auto-retry in auth context
-  }
-}
-```
 
 ---
 
@@ -758,7 +432,7 @@ CopyKey         := "copy" "." (Identifier ".")* Identifier
 RuleId          := ("BR" | "VAL" | "ERR" | "AC") "-" digit+
 Condition       := expression returning Boolean
 Effect          := assignment | uiEffect | navigation | actionCall | asyncCall | eventEmit
-AsyncCall       := [FieldId "="] "~>" (ApiMethod | HttpCall)   // async external/network call; binds result when FieldId present (§35.1, §36)
+AsyncCall       := [FieldId "="] "~>" (ApiMethod | HttpCall)   // async external/network call; binds result when FieldId present (§36.1, §37)
 String          := quoted text
 Block           := "{" lines "}"
 Comment         := "//" rest-of-line      // inline or full-line; "#" is reserved for ComponentId and must not be used as a comment delimiter
@@ -782,7 +456,7 @@ SCREEN CheckoutPayment v2
 SCREEN CheckoutPaymentGuest v1 extends CheckoutPayment v2
 ```
 
-See §44 for the full variant and inheritance specification.
+See §47 for the full variant and inheritance specification.
 
 ---
 
@@ -936,7 +610,145 @@ Prefer `ENTRY`/`EXIT` for high-level journey mapping and `NAVIGATION` for implem
 
 ---
 
-## 12. MODEL section
+## 12. PERMISSIONS section
+
+Use `PERMISSIONS` to declare OS-level permissions the screen requires, when to request them, and how to handle each
+outcome.
+
+```ssdl
+PERMISSIONS {
+  camera {
+    required_for: [#take_photo_btn, #scan_qr_btn]
+    request_when: first_tap(#take_photo_btn)
+    if not_determined:
+      show #camera_rationale_sheet
+    if authorized:
+      enable [#take_photo_btn, #scan_qr_btn]
+    if denied:
+      show #camera_denied_banner
+      disable [#take_photo_btn, #scan_qr_btn]
+    if restricted:
+      show #camera_restricted_banner
+      disable [#take_photo_btn, #scan_qr_btn]
+  }
+
+  notifications {
+    required_for: [#enable_alerts_btn]
+    request_when: tap #enable_alerts_btn
+    if denied:
+      show #notifications_denied_sheet
+  }
+}
+```
+
+### 12.1 Supported permission types
+
+```txt
+camera
+microphone
+location.always
+location.when_in_use
+location.precise          // iOS 14+ / Android 12+: full GPS accuracy
+location.approximate      // iOS 14+ / Android 12+: coarse location only
+notifications
+contacts
+photos
+biometrics
+bluetooth
+calendar
+health                    // HealthKit (iOS) / Health Connect (Android)
+tracking                  // IDFA / ATT on iOS
+```
+
+This list is not exhaustive. Teams may add project-specific permission types (e.g., `nfc`, `speech_recognition`)
+following the same pattern. Each added type should document its platform scope in a `//` comment.
+
+### 12.2 Permission states
+
+| State            | Meaning                                             |
+|------------------|-----------------------------------------------------|
+| `not_determined` | User has not been asked yet                         |
+| `authorized`     | User granted the permission                         |
+| `denied`         | User explicitly denied                              |
+| `restricted`     | Device-level restriction (parental controls, MDM)   |
+| `provisional`    | Notifications only: granted quietly, without alerts |
+
+### 12.3 Request timing options
+
+```txt
+on_view              // Request immediately on screen.view
+first_tap(#id)       // Request when user first taps the gated component
+explicit_action      // Request only when user taps a dedicated "Enable X" button
+deferred             // Do not request; let user trigger from settings
+```
+
+---
+
+## 13. FEATURE_FLAGS section
+
+Use `FEATURE_FLAGS` to declare which feature flags affect this screen, what they gate, and what the fallback is.
+
+```ssdl
+FEATURE_FLAGS {
+  new_payment_flow {
+    when enabled:
+      show #new_payment_section
+      hide #legacy_payment_section
+    when disabled:
+      show #legacy_payment_section
+      hide #new_payment_section
+    default: disabled
+  }
+
+  enhanced_error_messages {
+    when enabled:
+      $error_display_mode := detailed
+    default: enabled
+    fallback: disabled    // value used when the flag service is unreachable
+  }
+}
+```
+
+### 13.1 Feature flag fields
+
+| Field            | Meaning                                                                  | Required    |
+|------------------|--------------------------------------------------------------------------|-------------|
+| `when enabled:`  | Effects when the flag evaluates to enabled                               | Yes         |
+| `when disabled:` | Effects when the flag evaluates to disabled                              | Recommended |
+| `default:`       | Flag value in production before a controlled rollout begins              | Yes         |
+| `fallback:`      | Flag value used when the flag service is unreachable or evaluation fails | Recommended |
+
+`default:` and `fallback:` are independent. Example: a new feature may have `default: disabled` (off before rollout) and
+`fallback: disabled` (safe off if flag service fails). A critical fix may have `default: enabled` but
+`fallback: enabled` (fail open). Always specify `fallback:` for flags that gate user-visible features.
+
+### 13.2 Feature flag rules
+
+- Every component whose `visible_when` or `hidden_when` condition references a feature flag must have a corresponding
+  `FEATURE_FLAGS` entry.
+- The `default:` field must be `enabled` or `disabled`. It documents the flag's state in production before a controlled
+  rollout.
+- Feature flag conditions in `visible_when` should delegate to a named flag rather than embedding the flag check inline:
+
+Preferred:
+
+```ssdl
+#new_payment_section: Card {
+  visible_when: flag.new_payment_flow.enabled
+}
+```
+
+Avoid (flag logic scattered, not auditable):
+
+```ssdl
+#new_payment_section: Card {
+  visible_when: $user.bucket == "experiment_b"
+}
+```
+
+---
+
+## 14. MODEL section
 
 Use `MODEL` to define screen-local data, defaults, required fields, optional fields, and derived values.
 
@@ -946,7 +758,7 @@ MODEL {
   $password!: String := ""
   $remember_me: Boolean := false
   $error_msg?: String
-  $is_loading ==> @loading                          // derived from state; see §12.1
+  $is_loading ==> @loading                          // derived from state; see §14.1
 
   $email_valid ==> matchesEmail(trim($email))
   $password_valid ==> length($password) >= 8
@@ -955,7 +767,7 @@ MODEL {
 }
 ```
 
-### 12.1 Field notation
+### 14.1 Field notation
 
 ```ssdl
 $field_name!: Type := default
@@ -981,7 +793,7 @@ $derived_field ==> expression
 - To expose a screen state as a Boolean in the model, derive it from the state: `$is_loading ==> @loading`. Do not
   maintain a parallel Boolean field that mirrors state — they will drift.
 
-### 12.2 Recommended types
+### 14.2 Recommended types
 
 ```txt
 String
@@ -1020,7 +832,7 @@ MODEL {
 
 ---
 
-## 13. DATA section
+## 15. DATA section
 
 Use `DATA` to declare where information comes from and where it is written.
 
@@ -1050,7 +862,7 @@ mixed
 none
 ```
 
-### 13.1 Cache strategies for remote reads
+### 15.1 Cache strategies for remote reads
 
 | Strategy                 | Meaning                                                                                                                                 |
 |--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
@@ -1066,7 +878,7 @@ state, or user input.
 
 ---
 
-## 14. COPY section
+## 16. COPY section
 
 Use `COPY` for user-facing text and localization keys.
 
@@ -1084,7 +896,7 @@ COPY {
 Recommended rule: all user-facing strings in `UI`, `ERRORS`, `VALIDATION`, and `A11Y` should either reference `COPY`
 keys or intentionally inline short one-off text.
 
-### 14.1 Parameterized copy
+### 16.1 Parameterized copy
 
 Use ICU message format for strings that require interpolation.
 
@@ -1108,7 +920,7 @@ Reference parameterized copy in UI by passing values:
 }
 ```
 
-### 14.2 Copy key conventions
+### 16.2 Copy key conventions
 
 ```txt
 <screen>.<element>             login.title
@@ -1136,7 +948,7 @@ Allowed for quick drafts:
 
 ---
 
-## 15. UI section overview
+## 17. UI section overview
 
 The `UI` section defines the component tree, component labels, bindings, layout hints, visibility, enabled states,
 events, and accessibility hooks.
@@ -1206,7 +1018,7 @@ A component declaration uses this structure:
 
 **`errorFor($field)`** is a notional utility that returns the first active validation error message for the given model
 field, or an empty value when the field is valid or has not been validated yet. It resolves by matching the `$field`
-argument against the `fields:` lists declared in the `VALIDATION` section (§33), falling back to the field's `bind:`
+argument against the `fields:` lists declared in the `VALIDATION` section (§34), falling back to the field's `bind:`
 target when no `fields:` list is present. Implementations may use an equivalent lookup (e.g., a `Map<FieldId, String>`
 populated by the validation runner) rather than a literal `errorFor()` function.
 
@@ -1227,9 +1039,9 @@ Concise example:
 
 ---
 
-## 16. Component taxonomy
+## 18. Component taxonomy
 
-### 16.1 Content components
+### 18.1 Content components
 
 | Type              | Meaning                                                                                |
 |-------------------|----------------------------------------------------------------------------------------|
@@ -1252,7 +1064,7 @@ Concise example:
 | `Divider`         | Visual divider                                                                         |
 | `Spacer`          | Flexible empty space                                                                   |
 
-### 16.2 Input components
+### 18.2 Input components
 
 | Type               | Meaning                                                                                                                                                                                                                  |
 |--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1281,7 +1093,7 @@ Concise example:
 | `Scanner`          | Camera QR/barcode capture trigger                                                                                                                                                                                        |
 | `FilePicker`       | File/image selector from device library                                                                                                                                                                                  |
 
-### 16.3 Action components
+### 18.3 Action components
 
 | Type              | Meaning                                                                                                   |
 |-------------------|-----------------------------------------------------------------------------------------------------------|
@@ -1295,11 +1107,11 @@ Concise example:
 | `ContextMenu`     | Long-press or right-click contextual action list anchored to a component; children are `ContextMenuItem`  |
 | `ContextMenuItem` | Individual item in a `ContextMenu` — text + optional icon + optional destructive flag                     |
 
-### 16.4 Feedback components
+### 18.4 Feedback components
 
 | Type             | Meaning                                                                                                                                                                                              |
 |------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Banner`         | Inline/global message; `type:` sets severity — see §16a.45                                                                                                                                                                                |
+| `Banner`         | Inline/global message; `type:` sets severity — see §19.45                                                                                                                                                                                |
 | `NetworkBanner`  | Offline/reconnecting persistent notice — always visible while condition holds                                                                                                                        |
 | `Toast`          | Temporary auto-dismissing message                                                                                                                                                                    |
 | `Snackbar`       | Temporary bottom message with optional action                                                                                                                                                        |
@@ -1310,14 +1122,14 @@ Concise example:
 | `StepIndicator`  | Step/page progress — dots, numbers, or bars indicating position in a funnel or onboarding flow                                                                                                       |
 | `EmptyState`     | Structured state region — illustration + title + description + CTA. Use `type:` to express intent: `empty` (no data), `error` (load failed), `offline`, `no_results`, `permission_denied`, `custom`. |
 | `LoadingOverlay` | Full-screen blocking spinner with optional message and cancel                                                                                                                                        |
-| `Modal`          | Arbitrary-content modal container (see §16a.44)                                                                                                                                                                         |
+| `Modal`          | Arbitrary-content modal container (see §19.44)                                                                                                                                                                         |
 | `Dialog`         | Focused dialog — title + message + confirm button + optional cancel; use `destructive: true` for destructive confirm actions. Replaces `ConfirmDialog` and `DialogBox`.                              |
 | `ActionSheet`    | Option list presented as an overlay — iOS action sheet / Android bottom option menu                                                                                                                  |
 | `Sheet`          | Bottom sheet content container                                                                                                                                                                       |
 | `Popover`        | Anchored floating panel — can contain interactive content; distinct from `Tooltip` which is read-only                                                                                                |
 | `Tooltip`        | Read-only helper text anchored to a component                                                                                                                                                        |
 
-### 16.5 Layout components
+### 18.5 Layout components
 
 | Type            | Meaning                                                                                                                      |
 |-----------------|------------------------------------------------------------------------------------------------------------------------------|
@@ -1353,7 +1165,7 @@ Concise example:
 
 ---
 
-## 16a. Component-specific directives and examples
+## 19. Component-specific directives and examples
 
 This section documents directives, A11Y defaults, and SSDL examples for every non-trivial component.
 Standard directives (`pos`, `size`, `bind`, `visible_when`, `on tap`, `a11y`, etc.) always apply. Only
@@ -1365,7 +1177,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.1 Lottie
+### 19.1 Lottie
 
 | Directive      | Meaning                                            |
 |----------------|----------------------------------------------------|
@@ -1394,12 +1206,12 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.2 MapView
+### 19.2 MapView
 
 | Directive           | Meaning                                                                       |
 |---------------------|-------------------------------------------------------------------------------|
 | `center:`           | Initial map center — `{ lat, lng }` or `$field`                               |
-| `zoom:`             | Initial zoom — `street`, `neighborhood`, `city`, `region`, `country` (§48.11) |
+| `zoom:`             | Initial zoom — `street`, `neighborhood`, `city`, `region`, `country` (§51.11) |
 | `markers:`          | Bound collection; each item rendered as a map pin                             |
 | `interactive:`      | Boolean — allow pan/zoom/tap; `false` for static display                      |
 | `on region_change:` | Action fired when user pans or zooms                                          |
@@ -1422,7 +1234,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.3 Rating
+### 19.3 Rating
 
 | Directive | Meaning                              |
 |-----------|--------------------------------------|
@@ -1445,13 +1257,13 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.4 Tag
+### 19.4 Tag
 
 | Directive    | Meaning                                               |
 |--------------|-------------------------------------------------------|
 | `text:`      | Tag text — copy key or inline string                  |
 | `removable:` | Boolean — show remove affordance                      |
-| `style:`     | `filled` / `outline` / `ghost` / `tonal` — see §48.18 |
+| `style:`     | `filled` / `outline` / `ghost` / `tonal` — see §51.18 |
 | `on remove:` | Action when user taps the remove affordance           |
 
 **A11Y default role:** `button` when `removable: true`; `text` otherwise.
@@ -1469,7 +1281,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.5 NumberBadge
+### 19.5 NumberBadge
 
 | Directive | Meaning                                                         |
 |-----------|-----------------------------------------------------------------|
@@ -1490,7 +1302,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.6 StatusIndicator
+### 19.6 StatusIndicator
 
 | Directive | Meaning                                                              |
 |-----------|----------------------------------------------------------------------|
@@ -1511,13 +1323,13 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.7 Stat
+### 19.7 Stat
 
 | Directive      | Meaning                                     |
 |----------------|---------------------------------------------|
 | `value:`       | Primary number — Number, Money, or `$field` |
 | `subtitle:`    | Descriptor below the value                  |
-| `trend:`       | `up` / `down` / `neutral` — see §48.24      |
+| `trend:`       | `up` / `down` / `neutral` — see §51.24      |
 | `trend_value:` | Trend magnitude text — `"+12%"` or `$field` |
 
 **A11Y default role:** `text`.
@@ -1535,7 +1347,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.8 PriceTag
+### 19.8 PriceTag
 
 | Directive   | Meaning                                           |
 |-------------|---------------------------------------------------|
@@ -1557,13 +1369,13 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.9 Thumbnail
+### 19.9 Thumbnail
 
 | Directive   | Meaning                                                   |
 |-------------|-----------------------------------------------------------|
 | `src:`      | Image URL or `$field`                                     |
 | `fallback:` | Image shown while loading or on error                     |
-| `aspect:`   | `square` / `wide` / `portrait` / `tall` / `auto` (§48.22) |
+| `aspect:`   | `square` / `wide` / `portrait` / `tall` / `auto` (§51.22) |
 
 **A11Y default role:** `image`.
 
@@ -1580,13 +1392,13 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.10 QRCode
+### 19.10 QRCode
 
 | Directive           | Meaning                                  |
 |---------------------|------------------------------------------|
 | `value:`            | String encoded in the QR                 |
 | `size:`             | Standard size tokens                     |
-| `error_correction:` | `L` / `M` (default) / `Q` / `H` (§48.23) |
+| `error_correction:` | `L` / `M` (default) / `Q` / `H` (§51.23) |
 
 **A11Y default role:** `image` — always provide `a11y:` describing what the code represents.
 
@@ -1601,7 +1413,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.11 OTPInput
+### 19.11 OTPInput
 
 | Directive                     | Meaning                                      |
 |-------------------------------|----------------------------------------------|
@@ -1627,7 +1439,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.12 PhoneInput
+### 19.12 PhoneInput
 
 | Directive            | Meaning                                               |
 |----------------------|-------------------------------------------------------|
@@ -1651,7 +1463,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.13 TagInput
+### 19.13 TagInput
 
 | Directive        | Meaning                                     |
 |------------------|---------------------------------------------|
@@ -1678,7 +1490,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.14 QuantityInput
+### 19.14 QuantityInput
 
 | Directive | Meaning                      |
 |-----------|------------------------------|
@@ -1703,12 +1515,12 @@ new value. Minimum and maximum values should be announced when limits are reache
 
 ---
 
-### 16a.15 LocationInput
+### 19.15 LocationInput
 
 | Directive       | Meaning                                                              |
 |-----------------|----------------------------------------------------------------------|
 | `bias_country:` | ISO country code — biases results                                    |
-| `result_types:` | `address` / `city` / `region` / `establishment` / `all` — see §48.27 |
+| `result_types:` | `address` / `city` / `region` / `establishment` / `all` — see §51.27 |
 | `bind:`         | Binds to `Object({ address, lat, lng })`                             |
 
 **A11Y default role:** `textfield`.
@@ -1728,7 +1540,7 @@ current location" affordance that accesses the device GPS sensor, declare `PERMI
 
 ---
 
-### 16a.16 SegmentedControl
+### 19.16 SegmentedControl
 
 | Directive   | Meaning                                                         |
 |-------------|-----------------------------------------------------------------|
@@ -1750,12 +1562,12 @@ current location" affordance that accesses the device GPS sensor, declare `PERMI
 
 ---
 
-### 16a.17 ToggleGroup
+### 19.17 ToggleGroup
 
 | Directive    | Meaning                                            |
 |--------------|----------------------------------------------------|
 | `options:`   | Array of `{ label, icon?, value }`                 |
-| `selection:` | `single` / `multi` — see §48.25                    |
+| `selection:` | `single` / `multi` — see §51.25                    |
 | `bind:`      | Scalar field for `single`; array field for `multi` |
 
 **A11Y default role:** `radiogroup` for `single`; `group` for `multi`. Each toggle option should announce its label and
@@ -1774,7 +1586,7 @@ number of selected options when focus moves away: `"{n} filters selected"`.
 
 ---
 
-### 16a.18 ColorPicker
+### 19.18 ColorPicker
 
 | Directive  | Meaning                                          |
 |------------|--------------------------------------------------|
@@ -1798,11 +1610,11 @@ number of selected options when focus moves away: `"{n} filters selected"`.
 
 ---
 
-### 16a.19 Scanner
+### 19.19 Scanner
 
 | Directive       | Meaning                                                                          |
 |-----------------|----------------------------------------------------------------------------------|
-| `formats:`      | `qr` / `code128` / `ean13` / `pdf417` / `data_matrix` / `aztec` / `all` (§48.12) |
+| `formats:`      | `qr` / `code128` / `ean13` / `pdf417` / `data_matrix` / `aztec` / `all` (§51.12) |
 | `overlay_hint:` | Copy shown in the camera overlay                                                 |
 | `on scan:`      | Action fired with decoded value — required (LINT-040)                            |
 
@@ -1825,7 +1637,7 @@ silently disabling the button.
 
 ---
 
-### 16a.20 RichTextEditor
+### 19.20 RichTextEditor
 
 | Directive      | Meaning                                                                              |
 |----------------|--------------------------------------------------------------------------------------|
@@ -1833,7 +1645,7 @@ silently disabling the button.
 | `max_length:`  | Character limit                                                                      |
 | `bind:`        | Binds to a `Text` field                                                              |
 | `placeholder:` | Text shown when empty                                                                |
-| `on change:`   | Action fired on edit — aligns with §27 event vocabulary                              |
+| `on change:`   | Action fired on edit — aligns with §30 event vocabulary                              |
 
 **A11Y default role:** `textfield`.
 
@@ -1851,7 +1663,7 @@ silently disabling the button.
 
 ---
 
-### 16a.21 SpeedDial and SpeedDialItem
+### 19.21 SpeedDial and SpeedDialItem
 
 **SpeedDial:**
 
@@ -1901,7 +1713,7 @@ silently disabling the button.
 
 ---
 
-### 16a.22 ContextMenu and ContextMenuItem
+### 19.22 ContextMenu and ContextMenuItem
 
 **ContextMenu:**
 
@@ -1955,7 +1767,7 @@ anchor.
 
 ---
 
-### 16a.23 ActionSheet
+### 19.23 ActionSheet
 
 | Directive       | Meaning                                                 |
 |-----------------|---------------------------------------------------------|
@@ -1981,14 +1793,14 @@ anchor.
 
 ---
 
-### 16a.24 EmptyState
+### 19.24 EmptyState
 
 Single component replaces `EmptyState` and `ErrorState`. The `type:` directive expresses semantic intent and drives
 default illustration selection in the design system — omit `illustration:` to use the type default.
 
 | Directive       | Meaning                                                                                              |
 |-----------------|------------------------------------------------------------------------------------------------------|
-| `type:`         | `empty` (default) / `error` / `offline` / `no_results` / `permission_denied` / `custom` — see §48.28 |
+| `type:`         | `empty` (default) / `error` / `offline` / `no_results` / `permission_denied` / `custom` — see §51.28 |
 | `illustration:` | Override image path, icon name, or Lottie source; omit to use type default                           |
 | `title:`        | Primary heading — required (LINT-037)                                                                |
 | `description:`  | Supporting description                                                                               |
@@ -2020,12 +1832,12 @@ default illustration selection in the design system — omit `illustration:` to 
 
 ---
 
-### 16a.25 Popover
+### 19.25 Popover
 
 | Directive                 | Meaning                                               |
 |---------------------------|-------------------------------------------------------|
 | `anchor:`                 | `#component_id` the popover is attached to            |
-| `placement:`              | `top` / `bottom` / `left` / `right` / `auto` (§48.15) |
+| `placement:`              | `top` / `bottom` / `left` / `right` / `auto` (§51.15) |
 | `dismiss_on_outside_tap:` | Boolean (default `true`)                              |
 
 **A11Y default role:** `dialog`. Move focus inside on open; return focus to anchor on close.
@@ -2042,7 +1854,7 @@ default illustration selection in the design system — omit `illustration:` to 
 
 ---
 
-### 16a.26 Dialog
+### 19.26 Dialog
 
 Replaces `ConfirmDialog` and `DialogBox`. Single type handles all focused dialog patterns: omit `cancel_label:` for a
 single-button informational dialog; add `cancel_label:` for a two-button choice; set `destructive: true` to style the
@@ -2085,13 +1897,13 @@ confirm action in a destructive color.
 
 ---
 
-### 16a.27 StepIndicator
+### 19.27 StepIndicator
 
 | Directive  | Meaning                                               |
 |------------|-------------------------------------------------------|
 | `steps:`   | Total step count                                      |
 | `current:` | Active step index (0-based) or `$field`               |
-| `style:`   | `dots` / `numbers` / `bars` / `progress_bar` (§48.16) |
+| `style:`   | `dots` / `numbers` / `bars` / `progress_bar` (§51.16) |
 
 **A11Y default role:** `text` with label `"Step {current+1} of {steps}"`.
 
@@ -2107,7 +1919,7 @@ confirm action in a destructive color.
 
 ---
 
-### 16a.28 Progress
+### 19.28 Progress
 
 `Progress` uses `style:` to choose between linear and circular rendering.
 
@@ -2139,7 +1951,7 @@ confirm action in a destructive color.
 
 ---
 
-### 16a.29 LoadingOverlay
+### 19.29 LoadingOverlay
 
 | Directive     | Meaning                         |
 |---------------|---------------------------------|
@@ -2162,7 +1974,7 @@ confirm action in a destructive color.
 
 ---
 
-### 16a.30 NetworkBanner
+### 19.30 NetworkBanner
 
 | Directive           | Meaning                          |
 |---------------------|----------------------------------|
@@ -2184,7 +1996,7 @@ Use `visible_when:` bound to a network state field.
 
 ---
 
-### 16a.31 PullToRefresh
+### 19.31 PullToRefresh
 
 | Directive           | Meaning                                                                   |
 |---------------------|---------------------------------------------------------------------------|
@@ -2207,7 +2019,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.32 NavBar
+### 19.32 NavBar
 
 | Directive      | Meaning                                                       |
 |----------------|---------------------------------------------------------------|
@@ -2232,7 +2044,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.33 TabBar and TabItem
+### 19.33 TabBar and TabItem
 
 **TabBar:**
 
@@ -2278,7 +2090,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.34 Drawer and DrawerItem
+### 19.34 Drawer and DrawerItem
 
 **Drawer:**
 
@@ -2323,7 +2135,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.35 StickyHeader
+### 19.35 StickyHeader
 
 | Directive            | Meaning                                                      |
 |----------------------|--------------------------------------------------------------|
@@ -2345,7 +2157,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.36 Carousel
+### 19.36 Carousel
 
 | Directive          | Meaning                                                                                                                                            |
 |--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -2355,7 +2167,7 @@ Wrap around a `Scroll` or `List`.
 | `peek:`            | Spacing token — how much of adjacent item is visible; ignored when `fill: true`                                                                    |
 | `gap:`             | Space between items                                                                                                                                |
 | `snap:`            | Boolean — snap to item boundaries                                                                                                                  |
-| `orientation:`     | `horizontal` (default) / `vertical` — see §48.26                                                                                                   |
+| `orientation:`     | `horizontal` (default) / `vertical` — see §51.26                                                                                                   |
 | `indicator:`       | Boolean — show page dots                                                                                                                           |
 | `current:`         | Bind to current page index field                                                                                                                   |
 | `on slide_change:` | Action fired with current index                                                                                                                    |
@@ -2378,7 +2190,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.37 SectionList
+### 19.37 SectionList
 
 | Directive         | Meaning                                                                 |
 |-------------------|-------------------------------------------------------------------------|
@@ -2401,11 +2213,11 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.38 Table
+### 19.38 Table
 
 | Directive         | Meaning                                                                                             |
 |-------------------|-----------------------------------------------------------------------------------------------------|
-| `columns:`        | Array of column defs — see §48.20                                                                   |
+| `columns:`        | Array of column defs — see §51.20                                                                   |
 | `data:`           | Bound collection                                                                                    |
 | `sortable:`       | Boolean — enable column sorting                                                                     |
 | `on sort:`        | Action fired with `{ column: String, direction: asc/desc }` when user taps a sortable column header |
@@ -2433,7 +2245,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.39 SearchBar
+### 19.39 SearchBar
 
 | Directive      | Meaning                              |
 |----------------|--------------------------------------|
@@ -2459,7 +2271,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.40 Accordion
+### 19.40 Accordion
 
 | Directive         | Meaning                                                           |
 |-------------------|-------------------------------------------------------------------|
@@ -2481,7 +2293,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.41 Collapsible
+### 19.41 Collapsible
 
 | Directive    | Meaning                                       |
 |--------------|-----------------------------------------------|
@@ -2505,7 +2317,7 @@ The collapsible region itself needs no additional role.
 
 ---
 
-### 16a.42 FormGroup
+### 19.42 FormGroup
 
 | Directive      | Meaning                                                   |
 |----------------|-----------------------------------------------------------|
@@ -2525,7 +2337,7 @@ The collapsible region itself needs no additional role.
 
 ---
 
-### 16a.43 InlineLoader
+### 19.43 InlineLoader
 
 Reuses standard directives only (`size:`, `visible_when:`). No component-specific directives.
 
@@ -2544,9 +2356,9 @@ sole indication that something is happening (no loading text or state change on 
 
 ---
 
-### 16a.44 Modal
+### 19.44 Modal
 
-Arbitrary-content modal container. Unlike `Dialog` (the fixed title + message + confirm/cancel shape, §16a.26), `Modal`
+Arbitrary-content modal container. Unlike `Dialog` (the fixed title + message + confirm/cancel shape, §19.26), `Modal`
 imposes no internal structure — you supply `children:`. Reach for `Modal` when the overlay hosts a form, a custom
 layout, or anything richer than a confirm prompt; reach for `Dialog` for the standard title/message/actions pattern.
 
@@ -2571,7 +2383,7 @@ dismiss.
 
 ---
 
-### 16a.45 Banner
+### 19.45 Banner
 
 Inline or global message strip. `type:` sets the severity, which drives the color, the default leading icon, and the
 accessibility announcement priority.
@@ -2598,7 +2410,7 @@ assertively). Add `a11y: announce_when_visible` on banners shown conditionally s
 
 ---
 
-### 16a.46 Grid
+### 19.46 Grid
 
 | Directive  | Meaning                                                               |
 |------------|-----------------------------------------------------------------------|
@@ -2624,7 +2436,7 @@ expected.
 
 ---
 
-### 16a.47 HStack
+### 19.47 HStack
 
 | Directive  | Meaning                                             |
 |------------|-----------------------------------------------------|
@@ -2644,7 +2456,7 @@ expected.
 
 ---
 
-## 17. UI directive grammar
+## 20. UI directive grammar
 
 ```ssdl
 UIComponent     := ComponentId ":" ComponentType [String] ComponentBlock
@@ -2693,13 +2505,13 @@ StateDirective        := ("checked_when:" | "selected_when:" | "disabled_when:")
 TestDirective         := "test_id:" String
 ConditionDirective    := ("visible_when:" | "hidden_when:" | "enabled_when:"
                        | "loading_when:" | "readonly_when:") Condition
-AnimationDirective    := "animate:" AnimationExpr                          // see §32.1
-TransitionDirective   := "transition:" "shared(" SharedElementKey ")"      // see §32.2; SharedElementKey must match the destination screen's declaration
+AnimationDirective    := "animate:" AnimationExpr                          // see §33.1
+TransitionDirective   := "transition:" "shared(" SharedElementKey ")"      // see §33.2; SharedElementKey must match the destination screen's declaration
 EventDirective        := "on" EventName ":" Effect ["when" Condition]
 ChildrenDirective     := "children:" "[" ComponentId* "]"
 AccessibilityDirective:= "a11y:" AccessibilityExpr
 
-// Component-specific directives (see §16a for per-component usage)
+// Component-specific directives (see §19 for per-component usage)
 LottieDirective       := ("source:" String) | ("autoplay:" Boolean) | ("loop:" Boolean)
                        | ("speed:" Number) | ("progress:" FieldId)
 MapDirective          := ("center:" LatLng) | ("zoom:" ZoomToken) | ("markers:" FieldId)
@@ -2737,9 +2549,9 @@ DialogDirective       := ("title:" String) | ("message:" String) | ("confirm_lab
                        | ("cancel_label:" String) | ("destructive:" Boolean)
                        // cancel_label omitted = single-button dialog
 ModalDirective        := ("dismissible:" Boolean) | ("dismiss_on_outside_tap:" Boolean)
-                       // Modal holds arbitrary content via children:; see §16a.44 — use Dialog for title+message+actions
+                       // Modal holds arbitrary content via children:; see §19.44 — use Dialog for title+message+actions
 EmptyStateDirective   := ("type:" EmptyStateType) | ("illustration:" String) | ("title:" String)
-                       | ("description:" String) | ("cta:" CTAExpr)  // see §48.28 for type values
+                       | ("description:" String) | ("cta:" CTAExpr)  // see §51.28 for type values
 ProgressDirective     := ("style:" ProgressStyle) | ("value:" NumberOrField) | ("max:" Number) | ("indeterminate:" Boolean)
 StepIndicatorDirective:= ("steps:" Integer) | ("current:" NumberOrField) | ("style:" StepStyle)
 LoadingOverlayDir     := ("message:" String) | ("cancelable:" Boolean)
@@ -2769,11 +2581,11 @@ RatingDirective       := ("value:" NumberOrField) | ("max:" Integer) | ("style:"
 
 ---
 
-## 18. Nesting and component relationships
+## 21. Nesting and component relationships
 
 SSDL supports two ways to express nesting: explicit parent references and inline children.
 
-### 18.1 Explicit parent references
+### 21.1 Explicit parent references
 
 ```ssdl
 #screen: SafeArea {
@@ -2791,7 +2603,7 @@ SSDL supports two ways to express nesting: explicit parent references and inline
 }
 ```
 
-### 18.2 Inline nesting
+### 21.2 Inline nesting
 
 ```ssdl
 #content: Scroll {
@@ -2816,18 +2628,18 @@ SSDL supports two ways to express nesting: explicit parent references and inline
 }
 ```
 
-### 18.3 Recommended rule
+### 21.3 Recommended rule
 
 For production handoff, prefer explicit `in:` and `children:` references because they are easier to lint, diff, and
 convert into implementation tasks.
 
 ---
 
-## 19. Positioning directives
+## 22. Positioning directives
 
 Use `pos` to specify where an element belongs. Positioning should be semantic, not pixel-perfect.
 
-### 19.1 Anchor positions
+### 22.1 Anchor positions
 
 ```ssdl
 pos: top
@@ -2875,7 +2687,7 @@ Examples:
 }
 ```
 
-### 19.2 Relative positions
+### 22.2 Relative positions
 
 ```ssdl
 pos: below(#target)
@@ -2908,7 +2720,7 @@ Examples:
 }
 ```
 
-### 19.3 Inside and overlay positions
+### 22.3 Inside and overlay positions
 
 ```ssdl
 pos: inside(#card, top.left)
@@ -2931,7 +2743,7 @@ Examples:
 }
 ```
 
-### 19.4 Sticky and floating positions
+### 22.4 Sticky and floating positions
 
 ```ssdl
 pos: sticky(top)
@@ -2958,11 +2770,11 @@ Examples:
 
 ---
 
-## 20. Alignment directives
+## 23. Alignment directives
 
 Use `align` for internal or external alignment.
 
-### 20.1 Simple alignment
+### 23.1 Simple alignment
 
 ```ssdl
 align: start
@@ -2987,7 +2799,7 @@ Examples:
 }
 ```
 
-### 20.2 Axis alignment
+### 23.2 Axis alignment
 
 Use `main` and `cross` for stack-like containers.
 
@@ -3008,7 +2820,7 @@ Example:
 }
 ```
 
-### 20.3 Reference alignment
+### 23.3 Reference alignment
 
 ```ssdl
 align: align_to(#target.left)
@@ -3028,12 +2840,12 @@ Example:
 
 ---
 
-## 21. Sizing directives
+## 24. Sizing directives
 
 Use `size` to express intended size. Do not use exact dimensions unless a platform-specific implementation note requires
 it.
 
-### 21.1 Base size tokens
+### 24.1 Base size tokens
 
 ```txt
 xxs
@@ -3057,7 +2869,7 @@ Recommended interpretation:
 | `xl`  | Extra-large or prominent element             |
 | `xxl` | Hero-sized or highly prominent element       |
 
-### 21.2 Width and height hints
+### 24.2 Width and height hints
 
 ```ssdl
 size: w:fill
@@ -3102,7 +2914,7 @@ Examples:
 }
 ```
 
-### 21.3 Relative sizing
+### 24.3 Relative sizing
 
 ```ssdl
 size: same(#target)
@@ -3135,7 +2947,7 @@ Examples:
 }
 ```
 
-### 21.4 Sizing conflict rule
+### 24.4 Sizing conflict rule
 
 If both a general size and axis-specific size are present, axis-specific values win.
 
@@ -3149,7 +2961,7 @@ Interpretation: large button treatment, width fills parent.
 
 ---
 
-## 22. Spacing directives
+## 25. Spacing directives
 
 Use spacing tokens for gaps, padding, margins, and insets.
 
@@ -3164,7 +2976,7 @@ xl
 xxl
 ```
 
-### 22.1 Spacing properties
+### 25.1 Spacing properties
 
 | Directive | Meaning                                        |
 |-----------|------------------------------------------------|
@@ -3193,7 +3005,7 @@ Examples:
 }
 ```
 
-### 22.2 Directional spacing
+### 25.2 Directional spacing
 
 Directional forms are allowed when needed.
 
@@ -3205,7 +3017,7 @@ inset: bottom:safe
 
 ---
 
-## 23. Layering and z-order directives
+## 26. Layering and z-order directives
 
 Use `layer` when components overlap or sit above/below other elements.
 
@@ -3246,7 +3058,7 @@ Recommended z-order semantics:
 
 ---
 
-## 24. Behavior directives
+## 27. Behavior directives
 
 Use `behavior` to express runtime layout behavior.
 
@@ -3295,7 +3107,7 @@ Multiple behaviors may be listed:
 
 ---
 
-## 25. Visibility, enabled, and loading directives
+## 28. Visibility, enabled, and loading directives
 
 Use condition directives to connect UI to model/state.
 
@@ -3339,7 +3151,7 @@ banners), add `a11y: hidden_when_not_visible` to signal this intent to implement
 
 ---
 
-## 26. Binding directives
+## 29. Binding directives
 
 Use `bind` to connect a UI component to a model field.
 
@@ -3382,7 +3194,7 @@ The `as $order` clause on `data:` names the per-element binding, which the `item
 `data:`/`item:` is not limited to scrollable collections; use it on layout stacks (`HStack`, `VStack`) too — e.g. a
 wrapping row of filter chips.
 
-### 26.1 Collection directives
+### 29.1 Collection directives
 
 | Directive        | Meaning                                  |
 |------------------|------------------------------------------|
@@ -3412,7 +3224,7 @@ multi              // Tap toggles item selection; multiple allowed
 
 ---
 
-## 27. Event directives
+## 30. Event directives
 
 Use `on <event>:` for component-specific events. The event name matches the FLOW vocabulary — no `on_` prefix. An
 optional `when <condition>` guard may be appended inline.
@@ -3455,7 +3267,7 @@ Examples:
 }
 ```
 
-### 27.1 Component-to-FLOW event mapping
+### 30.1 Component-to-FLOW event mapping
 
 When a component declares `on <event>:`, the corresponding FLOW entry uses a namespaced event name for system-level
 events. Direct user gestures map one-to-one.
@@ -3476,12 +3288,12 @@ events. Direct user gestures map one-to-one.
 | `on refresh:`       | `on refresh #id`                  | Pull-to-refresh triggered            |
 | `on select:`        | `on select #id`                   | Item selected                        |
 | `on deselect:`      | `on deselect #id`                 | Item deselected                      |
-| `on appear:`        | `on screen.view` (lifecycle)      | Component became visible; see §29    |
-| `on disappear:`     | `on screen.disappear` (lifecycle) | Component left visible area; see §29 |
+| `on appear:`        | `on screen.view` (lifecycle)      | Component became visible; see §32    |
+| `on disappear:`     | `on screen.disappear` (lifecycle) | Component left visible area; see §32 |
 
 ---
 
-## 28. State section
+## 31. State section
 
 Use `STATES` to define named screen states and what the UI should do in each state. Declare the initial state with
 `initial:` at the top of the block.
@@ -3513,7 +3325,7 @@ STATES {
 `initial:` is required when `STATE_TRANSITIONS` is present. It declares which state the screen enters on first load,
 before any user interaction.
 
-### 28.1 Recommended state names
+### 31.1 Recommended state names
 
 ```txt
 @idle
@@ -3532,7 +3344,7 @@ before any user interaction.
 @refreshing
 ```
 
-### 28.2 State-transition table format
+### 31.2 State-transition table format
 
 Use `STATE_TRANSITIONS` as the **machine-readable canonical form** for all state changes. `STATES` is the human-readable
 summary. When both are present, `STATE_TRANSITIONS` governs implementation. If they conflict, update `STATES` to match.
@@ -3550,7 +3362,7 @@ STATE_TRANSITIONS {
 }
 ```
 
-### 28.3 Logic authority chain
+### 31.3 Logic authority chain
 
 Three sections can express behavioral logic. Each owns a distinct responsibility:
 
@@ -3568,7 +3380,7 @@ in the same function).
 
 ---
 
-## 29. LIFECYCLE section
+## 32. LIFECYCLE section
 
 Use `LIFECYCLE` to declare screen-level and app-level events that affect this screen. This is distinct from `FLOW` (
 which handles user events) and `STATES` (which declares states). LIFECYCLE events drive state transitions and data
@@ -3585,7 +3397,7 @@ LIFECYCLE {
 }
 ```
 
-### 29.1 Lifecycle event vocabulary
+### 32.1 Lifecycle event vocabulary
 
 | Event               | When it fires                                                                                |
 |---------------------|----------------------------------------------------------------------------------------------|
@@ -3596,7 +3408,7 @@ LIFECYCLE {
 | `app.foreground`    | When the app returns from background while this screen is active                             |
 | `app.background`    | When the app moves to background while this screen is active                                 |
 
-### 29.2 Common patterns
+### 32.2 Common patterns
 
 ```ssdl
 LIFECYCLE {
@@ -3619,7 +3431,7 @@ LIFECYCLE {
 }
 ```
 
-### 29.3 Lifecycle error handling
+### 32.3 Lifecycle error handling
 
 All `LIFECYCLE` handlers that perform async work must specify failure behavior, either inline or via `ACTIONS`.
 
@@ -3642,145 +3454,7 @@ ACTIONS {
 
 ---
 
-## 30. PERMISSIONS section
-
-Use `PERMISSIONS` to declare OS-level permissions the screen requires, when to request them, and how to handle each
-outcome.
-
-```ssdl
-PERMISSIONS {
-  camera {
-    required_for: [#take_photo_btn, #scan_qr_btn]
-    request_when: first_tap(#take_photo_btn)
-    if not_determined:
-      show #camera_rationale_sheet
-    if authorized:
-      enable [#take_photo_btn, #scan_qr_btn]
-    if denied:
-      show #camera_denied_banner
-      disable [#take_photo_btn, #scan_qr_btn]
-    if restricted:
-      show #camera_restricted_banner
-      disable [#take_photo_btn, #scan_qr_btn]
-  }
-
-  notifications {
-    required_for: [#enable_alerts_btn]
-    request_when: tap #enable_alerts_btn
-    if denied:
-      show #notifications_denied_sheet
-  }
-}
-```
-
-### 30.1 Supported permission types
-
-```txt
-camera
-microphone
-location.always
-location.when_in_use
-location.precise          // iOS 14+ / Android 12+: full GPS accuracy
-location.approximate      // iOS 14+ / Android 12+: coarse location only
-notifications
-contacts
-photos
-biometrics
-bluetooth
-calendar
-health                    // HealthKit (iOS) / Health Connect (Android)
-tracking                  // IDFA / ATT on iOS
-```
-
-This list is not exhaustive. Teams may add project-specific permission types (e.g., `nfc`, `speech_recognition`)
-following the same pattern. Each added type should document its platform scope in a `//` comment.
-
-### 30.2 Permission states
-
-| State            | Meaning                                             |
-|------------------|-----------------------------------------------------|
-| `not_determined` | User has not been asked yet                         |
-| `authorized`     | User granted the permission                         |
-| `denied`         | User explicitly denied                              |
-| `restricted`     | Device-level restriction (parental controls, MDM)   |
-| `provisional`    | Notifications only: granted quietly, without alerts |
-
-### 30.3 Request timing options
-
-```txt
-on_view              // Request immediately on screen.view
-first_tap(#id)       // Request when user first taps the gated component
-explicit_action      // Request only when user taps a dedicated "Enable X" button
-deferred             // Do not request; let user trigger from settings
-```
-
----
-
-## 31. FEATURE_FLAGS section
-
-Use `FEATURE_FLAGS` to declare which feature flags affect this screen, what they gate, and what the fallback is.
-
-```ssdl
-FEATURE_FLAGS {
-  new_payment_flow {
-    when enabled:
-      show #new_payment_section
-      hide #legacy_payment_section
-    when disabled:
-      show #legacy_payment_section
-      hide #new_payment_section
-    default: disabled
-  }
-
-  enhanced_error_messages {
-    when enabled:
-      $error_display_mode := detailed
-    default: enabled
-    fallback: disabled    // value used when the flag service is unreachable
-  }
-}
-```
-
-### 31.1 Feature flag fields
-
-| Field            | Meaning                                                                  | Required    |
-|------------------|--------------------------------------------------------------------------|-------------|
-| `when enabled:`  | Effects when the flag evaluates to enabled                               | Yes         |
-| `when disabled:` | Effects when the flag evaluates to disabled                              | Recommended |
-| `default:`       | Flag value in production before a controlled rollout begins              | Yes         |
-| `fallback:`      | Flag value used when the flag service is unreachable or evaluation fails | Recommended |
-
-`default:` and `fallback:` are independent. Example: a new feature may have `default: disabled` (off before rollout) and
-`fallback: disabled` (safe off if flag service fails). A critical fix may have `default: enabled` but
-`fallback: enabled` (fail open). Always specify `fallback:` for flags that gate user-visible features.
-
-### 31.2 Feature flag rules
-
-- Every component whose `visible_when` or `hidden_when` condition references a feature flag must have a corresponding
-  `FEATURE_FLAGS` entry.
-- The `default:` field must be `enabled` or `disabled`. It documents the flag's state in production before a controlled
-  rollout.
-- Feature flag conditions in `visible_when` should delegate to a named flag rather than embedding the flag check inline:
-
-Preferred:
-
-```ssdl
-#new_payment_section: Card {
-  visible_when: flag.new_payment_flow.enabled
-}
-```
-
-Avoid (flag logic scattered, not auditable):
-
-```ssdl
-#new_payment_section: Card {
-  visible_when: $user.bucket == "experiment_b"
-}
-```
-
----
-
-## 32. ANIMATION section
+## 33. ANIMATION section
 
 Use `ANIMATION` to express motion intent for screen transitions and component enter/exit animations. This section
 enables `reduced_motion` alternatives to be specified alongside each animation.
@@ -3811,7 +3485,7 @@ ANIMATION {
 }
 ```
 
-### 32.1 Animation tokens
+### 33.1 Animation tokens
 
 **Enter/exit animations:**
 
@@ -3882,7 +3556,7 @@ Use `then` to sequence animations on the same component.
 Each step in a `then` chain completes before the next begins. Reduced motion applies to the entire chain — specify a
 single reduced-motion alternative for the full sequence.
 
-### 32.2 Shared element transitions
+### 33.2 Shared element transitions
 
 ```ssdl
 ANIMATION {
@@ -3894,7 +3568,7 @@ ANIMATION {
 
 The string in `shared(...)` is the shared element key that the destination screen must also declare.
 
-### 32.3 Reduced motion rule
+### 33.3 Reduced motion rule
 
 `reduced_motion` is required on every animation that conveys meaning (entrance, exit, error shake). Use `instant` when
 the animation is for delight only and absence doesn't hurt comprehension. Use the reduced-motion alternative when the
@@ -3902,7 +3576,7 @@ animation communicates state change (e.g., sliding in an error banner).
 
 ---
 
-## 33. Validation section
+## 34. Validation section
 
 Use `VALIDATION` for field-level validation rules.
 
@@ -3915,7 +3589,7 @@ VALIDATION {
 }
 ```
 
-### 33.1 Cross-field validation
+### 34.1 Cross-field validation
 
 Cross-field rules use the same `condition => message` syntax and may reference any number of model fields. Attach a
 `fields:` hint to tell the UI which inputs should show the error.
@@ -3937,7 +3611,7 @@ shown inline on the listed fields.
 Cross-field rules are evaluated on submit and re-evaluated when any of their referenced fields change after the first
 submit attempt.
 
-### 33.2 Async validation
+### 34.2 Async validation
 
 Use the `async:` modifier for rules that require a server round-trip. The rule declares the intent; the implementation
 lives in an `ACTIONS` function.
@@ -3964,7 +3638,7 @@ VALIDATION {
 Async validation runs on field blur and on submit. Results are debounced — implementations should wait at least 300ms
 after the last keystroke before firing.
 
-### 33.3 Explicit no-validation marker
+### 34.3 Explicit no-validation marker
 
 Fields that intentionally have no validation must be marked to pass LINT-008. Use `validation: none` on the component:
 
@@ -4017,9 +3691,9 @@ Recommended validation display conventions:
 
 ---
 
-## 34. Business rules section
+## 35. Business rules section
 
-Use `BUSINESS_RULES` for product or domain behavior that is not just UI validation. See §28.3 for the authority chain
+Use `BUSINESS_RULES` for product or domain behavior that is not just UI validation. See §31.3 for the authority chain
 between `BUSINESS_RULES`, `FLOW`, and `ACTIONS`.
 
 ```ssdl
@@ -4046,7 +3720,7 @@ Good business rules are:
 
 ---
 
-## 35. ACTIONS section with pseudocode
+## 36. ACTIONS section with pseudocode
 
 Use `ACTIONS` for procedural logic. Keep pseudocode readable and implementation-agnostic.
 
@@ -4087,7 +3761,7 @@ ACTIONS {
 }
 ```
 
-### 35.1 Pseudocode conventions
+### 36.1 Pseudocode conventions
 
 | Pattern                   | Meaning                   |
 |---------------------------|---------------------------|
@@ -4104,17 +3778,17 @@ ACTIONS {
 | `recompute $field`        | Recalculate derived value |
 
 Use `~>` for operations that cross the app boundary (API, network, IPC); reserve `await` for in-process async (local
-database, timers, file I/O). In FLOW, `on <event> ~> <Api.method>` dispatches the external call directly (§36).
+database, timers, file I/O). In FLOW, `on <event> ~> <Api.method>` dispatches the external call directly (§37).
 
 ---
 
-## 36. FLOW section
+## 37. FLOW section
 
-Use `FLOW` for event-driven behavior in a concise form. `FLOW` owns event wiring only — see §28.3 for the authority
+Use `FLOW` for event-driven behavior in a concise form. `FLOW` owns event wiring only — see §31.3 for the authority
 chain.
 
 Lifecycle events used in `FLOW` (`screen.view`, `screen.first_view`, `screen.disappear`, `screen.destroy`,
-`app.foreground`, `app.background`) share the same vocabulary as §29.1. User-initiated events (`tap`, `input.change`,
+`app.foreground`, `app.background`) share the same vocabulary as §32.1. User-initiated events (`tap`, `input.change`,
 `keyboard.submit`, `scroll.near_end`, `long_press`, `swipe_left`, etc.) are FLOW-only. For analytics event triggers,
 prefer `screen.first_view` over `screen.view` to avoid duplicate fires on every re-navigation to the screen.
 
@@ -4167,7 +3841,7 @@ on swipe_left #order_row do showDeleteConfirm($order)
 
 ---
 
-## 37. API section
+## 38. API section
 
 Use `API` to describe backend requests and responses used by the screen.
 
@@ -4217,9 +3891,9 @@ Recommended fields:
 | `errors`     | Known error statuses                                          |
 | `timeout_ms` | Client timeout                                                |
 | `retry`      | Retry behavior: `none`, `once`, `exponential backoff max:<n>` |
-| `cache`      | Cache strategy (see §13.1)                                    |
+| `cache`      | Cache strategy (see §15.1)                                    |
 
-### 37.1 Required ERRORS coverage
+### 38.1 Required ERRORS coverage
 
 Every status code listed in `API.errors` must have a corresponding entry in the `ERRORS` section or be explicitly marked
 as handled globally:
@@ -4236,7 +3910,7 @@ Inline `// handled:` comments satisfy LINT-006 when a global handler covers the 
 
 ---
 
-## 38. NAVIGATION section
+## 39. NAVIGATION section
 
 Use `NAVIGATION` for route transitions and stack behavior.
 
@@ -4275,7 +3949,7 @@ Recommended navigation properties:
 
 ---
 
-## 39. ANALYTICS section
+## 40. ANALYTICS section
 
 Use `ANALYTICS` to specify product tracking. Include a `privacy` block to declare data handling rules.
 
@@ -4349,7 +4023,7 @@ Rules:
 
 ---
 
-## 40. A11Y section
+## 41. A11Y section
 
 Use `A11Y` for accessibility requirements.
 
@@ -4399,7 +4073,7 @@ Recommended accessibility topics:
 | Reduced motion     | Behavior when animations are disabled              |
 | Roles              | Semantic role overrides for non-obvious components |
 
-### 40.1 Semantic roles
+### 41.1 Semantic roles
 
 Each component type has a default inferred role (e.g., `Btn` → `button`, `Txt` → `text`, `Input` → `textfield`, `List` →
 `list`). Use the `roles:` block only to override the inferred role when a component is used in a non-standard semantic
@@ -4438,10 +4112,10 @@ Android). `heading(n)` maps to heading level where supported.
 
 ---
 
-## 41. ERRORS section
+## 42. ERRORS section
 
 Use `ERRORS` for expected failures and recovery. Every error status code declared in `API.errors` must have a
-corresponding entry here or an inline `// handled:` annotation in the API section (§37.1).
+corresponding entry here or an inline `// handled:` annotation in the API section (§38.1).
 
 ```ssdl
 ERRORS {
@@ -4491,7 +4165,7 @@ unknown          // Unexpected error with no specific handler
 
 ---
 
-## 42. ACCEPTANCE section
+## 43. ACCEPTANCE section
 
 Use `ACCEPTANCE` for testable outcomes. Gherkin-style phrasing is recommended.
 
@@ -4531,7 +4205,7 @@ Recommended acceptance coverage:
 
 ---
 
-## 43. OPEN_QUESTIONS section
+## 44. OPEN_QUESTIONS section
 
 Use this section only while the spec is not ready. Unresolved questions with `blocks: ready` prevent the spec from being
 marked `status: ready`.
@@ -4554,7 +4228,7 @@ OPEN_QUESTIONS {
 }
 ```
 
-### 43.1 Question fields
+### 44.1 Question fields
 
 | Field      | Meaning                                                                       | Required |
 |------------|-------------------------------------------------------------------------------|----------|
@@ -4563,7 +4237,7 @@ OPEN_QUESTIONS {
 | `blocks`   | What the question blocks: `ready`, a section name, or a specific AC/BR/VAL ID | Yes      |
 | `status`   | Current status                                                                | Yes      |
 
-### 43.2 Status values
+### 44.2 Status values
 
 ```txt
 open               // Active, needs decision
@@ -4577,7 +4251,440 @@ A `ready` spec must have no questions with `status: open` or `status: pending_*`
 
 ---
 
-## 44. Screen variants and inheritance
+## 45. Import and Include
+
+SSDL supports importing named items from shared fragment files and inlining shared section content. This eliminates
+duplication of common components, copy, error handlers, API contracts, and accessibility standards across many screen
+specs.
+
+---
+
+### 45.1 Import declarations
+
+`import` declarations appear immediately after the `SCREEN` declaration and before any sections. They load named
+definitions from a fragment file into the importing screen's namespace.
+
+```ssdl
+SCREEN OrderDetail v1
+
+// Named imports — specific items
+import { #app_nav, #app_tab_bar } from "@shared/navigation.ssdl" at v2
+import { copy.common, copy.errors } from "@shared/copy.ssdl" at v1
+import { ERR-NETWORK, ERR-TIMEOUT, ERR-500 } from "@shared/errors.ssdl" at v1
+import { LoginAPI } from "@shared/apis/auth.ssdl" at v1
+import { handleNetworkError, retryWithBackoff } from "@shared/actions.ssdl" at v1
+import { VAL-email, VAL-phone } from "@shared/validators.ssdl" at v1
+
+META { ... }
+```
+
+**Import syntax forms:**
+
+```ssdl
+// Named import — one or more specific items
+import { ItemA, ItemB } from "path/to/fragment.ssdl"
+
+// Named import with version pin
+import { ItemA } from "path/to/fragment.ssdl" at v2
+
+// Named import with alias — rename on import
+import { ItemA } as MyAlias from "path/to/fragment.ssdl" at v1
+
+// Namespace import — all items under a COPY prefix
+import copy.common from "@shared/copy.ssdl" at v1
+import copy.errors from "@shared/copy.ssdl" at v1
+
+// Multi-alias import
+import { LoginAPI } as Auth, { LogoutAPI } as Deauth from "@shared/apis/auth.ssdl" at v1
+```
+
+**Braced and unbraced COPY imports are equivalent.** The braced form `import { copy.common, copy.errors } from "..."`
+and the unbraced form `import copy.common from "..."` both import COPY namespaces and produce the same result. The
+unbraced form is shorthand for a single namespace; use the braced form to import multiple namespaces from the same
+fragment, or to mix COPY namespaces with non-COPY items in one statement.
+
+---
+
+### 45.2 What can be imported
+
+| Importable from fragment | Examples                                    |
+|--------------------------|---------------------------------------------|
+| UI component definitions | `#app_nav`, `#app_tab_bar`, `#product_card` |
+| COPY namespaces or keys  | `copy.common`, `copy.common.error.network`  |
+| API contracts            | `LoginAPI`, `OrdersAPI`                     |
+| ERRORS entries           | `ERR-NETWORK`, `ERR-TIMEOUT`, `ERR-500`     |
+| ACTIONS functions        | `handleNetworkError`, `retryWithBackoff`    |
+| VALIDATION rules         | `VAL-email`, `VAL-phone`                    |
+| MODEL field sets         | `$auth_fields`, `$pagination_fields`        |
+
+**Not importable** (too screen-specific): `SCREEN`, `META`, `STATES`, `STATE_TRANSITIONS`, `FLOW`, `LIFECYCLE`,
+`ACCEPTANCE`, `PURPOSE`, `SCOPE`.
+
+---
+
+### 45.3 Path resolution
+
+SSDL supports two path forms:
+
+**Relative paths** — always valid, no tooling required:
+
+```ssdl
+import { #app_nav } from "../shared/navigation.ssdl"
+import { copy.common } from "./copy/common.ssdl"
+```
+
+**`@alias` paths** — project-root shorthand configured in `ssdl.config.json`:
+
+```ssdl
+import { #app_nav } from "@shared/navigation.ssdl"
+import { copy.common } from "@copy/common.ssdl"
+```
+
+**`ssdl.config.json`** — place at the project root (alongside your `.specs/` directory):
+
+```json
+{
+  "version": "1",
+  "aliases": {
+    "@shared": "./specs/shared",
+    "@copy": "./specs/shared/copy",
+    "@standards": "./specs/standards",
+    "@apis": "./specs/shared/apis"
+  }
+}
+```
+
+If no `ssdl.config.json` exists, `@` aliases are treated as unresolvable (LINT-048 error).
+
+---
+
+### 45.4 Version pinning
+
+Append `at v<n>` to pin the import to a declared fragment version:
+
+```ssdl
+import { copy.common } from "@shared/copy.ssdl" at v2
+```
+
+**Rules:**
+
+- Version must match a version declared in the fragment's `FRAGMENT_META.changelog`.
+- When the fragment releases a new version, importing screens receive a LINT warning until they update their pin or
+  explicitly re-confirm the current pin.
+- Omitting `at` is allowed but triggers a LINT warning in production-ready specs (status: ready) — unpinned imports are
+  a maintenance risk.
+
+---
+
+### 45.5 Aliasing
+
+Use `as` to rename an imported item in the importing screen's namespace:
+
+```ssdl
+// Avoid a name collision
+import { ERR-NETWORK } as ERR-NET from "@shared/errors.ssdl" at v1
+
+// Use a generic API under a screen-specific name
+import { GenericAuthAPI } as LoginAPI from "@shared/apis.ssdl" at v1
+```
+
+Aliased names must not conflict with other local or imported names (LINT-049).
+
+---
+
+### 45.6 Conflict resolution
+
+| Situation                              | Resolution                                                                                                                                                         |
+|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Import vs local declaration of same ID | **Local wins.** The imported item is the fallback; the local definition overrides it. LINT-051 warns that the import is being shadowed — confirm it's intentional. |
+| Two imports declaring the same ID      | **Later import wins.** LINT-049 warns on the conflict — use `as` to resolve cleanly.                                                                               |
+| Import vs `include` of same key        | **Local `include` wins if it appears after;** import wins if `include` appears before. See §45.8 for ordering.                                                     |
+
+---
+
+### 45.7 Importing UI components — import ≠ usage
+
+Importing a component definition does **not** place it in the screen's layout tree. After importing, you must still
+reference the component explicitly in `children:` or via `in:`.
+
+```ssdl
+import { #app_nav } from "@shared/navigation.ssdl" at v2
+
+UI {
+  #screen: SafeArea {
+    children: [#app_nav, #content]   // explicit reference required
+  }
+  // No need to re-declare #app_nav — its definition comes from the import
+}
+```
+
+You may override imported component directives by re-declaring the component locally:
+
+```ssdl
+// Override just the title of the imported nav bar
+#app_nav: NavBar {
+  title: copy.orders.screen_title   // local override; all other directives from the import
+}
+```
+
+---
+
+### 45.8 `include` — inline section content
+
+`include` embeds the full content of a named section from a fragment file directly into the importing screen's
+corresponding section. Use it for shared standards and defaults that should apply verbatim.
+
+```ssdl
+A11Y {
+  include "@standards/mobile_a11y.ssdl"   // inlines touch_targets:, contrast:, reduced_motion:
+
+  // Screen-specific additions after include
+  screen_title: "Order Detail"
+  focus_order: [#order_header, #items_list, #checkout_btn]
+}
+
+ANALYTICS {
+  order_viewed { trigger: screen.first_view }
+
+  privacy {
+    include "@standards/gdpr_privacy.ssdl"   // inlines consent: required_before_fire, never_send: [...]
+    user_id: allowed_after_auth              // screen-specific addition
+  }
+}
+
+ERRORS {
+  include "@shared/common_errors.ssdl"   // inlines ERR-NETWORK, ERR-TIMEOUT, ERR-500
+  ERR-404 {                              // screen-specific addition
+    when: OrdersAPI.get returns 404
+    ui: show #load_error with type: not_found
+    recovery: user navigates back
+  }
+}
+```
+
+**Ordering rule:** declarations that appear **after** `include` override included values. Declarations that appear *
+*before** `include` are overridden by it. When in doubt, place `include` first and local overrides after.
+
+```ssdl
+A11Y {
+  contrast: wcag_aaa                    // declared BEFORE include — will be overridden
+  include "@standards/mobile_a11y.ssdl" // declares contrast: wcag_aa — wins over the above
+  screen_title: "Orders"                // declared AFTER include — local value wins
+}
+```
+
+LINT-052 warns when a pre-include declaration is silently overridden.
+
+---
+
+### 45.9 Transitive dependencies
+
+When a fragment imports from another fragment, those transitive imports are **resolved automatically** (so no
+missing-dependency errors), but they are **not visible** in the importing screen unless explicitly re-imported.
+
+```
+Screen A
+  imports #app_nav from fragment/nav.ssdl
+    fragment/nav.ssdl imports #back_btn from fragment/buttons.ssdl
+
+// Screen A can use #app_nav (direct import)
+// Screen A CANNOT use #back_btn directly — it must add its own import if needed
+```
+
+---
+
+### 45.10 Importable MODEL field sets
+
+A fragment may export a named set of MODEL fields that a screen can import as a group:
+
+```ssdl
+// In @shared/model_fragments.ssdl
+export $auth_fields := {
+  $is_authenticated: Boolean := false
+  $auth_token?: Token
+  $user_id?: ID
+}
+
+// In a screen
+import { $auth_fields } from "@shared/model_fragments.ssdl" at v1
+
+MODEL {
+  use $auth_fields             // expands all fields from the set into this MODEL
+  $email!: Email := ""         // screen-specific additions
+}
+```
+
+The `use` keyword inside `MODEL` expands an imported field set in-place.
+
+---
+
+## 46. Fragment file format
+
+Fragment files contain shared, reusable SSDL definitions. They are not screen specs — they have no `SCREEN` declaration,
+no `META`, no `ACCEPTANCE`. They are identified by a `FRAGMENT` header.
+
+**File naming convention:**
+
+```txt
+<category>.<name>.fragment.ssdl
+```
+
+Examples:
+
+```txt
+shared.navigation.fragment.ssdl
+shared.copy.common.fragment.ssdl
+shared.errors.common.fragment.ssdl
+standards.mobile_a11y.fragment.ssdl
+apis.auth.fragment.ssdl
+```
+
+---
+
+### 46.1 Fragment header
+
+Every fragment file starts with a `FRAGMENT` declaration and a `FRAGMENT_META` block:
+
+```ssdl
+FRAGMENT navigation v2
+
+FRAGMENT_META {
+  owner: Platform/Design System Team
+  last_updated: 2026-06-09
+  changelog: {
+    v2: "Add #app_tab_bar; rename #legacy_nav → #app_nav"
+    v1: "Initial shared navigation components"
+  }
+}
+```
+
+The `FRAGMENT` version is what importing screens reference with `at v<n>`.
+
+---
+
+### 46.2 Allowed sections in a fragment
+
+| Allowed                      | Not allowed                    |
+|------------------------------|--------------------------------|
+| `UI` (component definitions) | `SCREEN`                       |
+| `COPY`                       | `META`                         |
+| `API`                        | `STATES` / `STATE_TRANSITIONS` |
+| `ERRORS`                     | `FLOW`                         |
+| `ACTIONS`                    | `LIFECYCLE`                    |
+| `VALIDATION`                 | `ACCEPTANCE`                   |
+| `MODEL` (field set exports)  | `PURPOSE` / `SCOPE`            |
+| `A11Y` (standards blocks)    | `ROUTE` / `NAVIGATION`         |
+| `ANALYTICS` (privacy blocks) | `FEATURE_FLAGS`                |
+
+---
+
+### 46.3 Export declarations
+
+By default, everything in a fragment is importable. To restrict the public surface, add explicit `export` declarations —
+once any `export` appears, only exported items are importable.
+
+```ssdl
+FRAGMENT navigation v2
+
+FRAGMENT_META { ... }
+
+export #app_nav
+export #app_tab_bar
+// #nav_back_btn is private — used internally, not importable by consuming screens
+
+UI {
+  #app_nav: NavBar { ... }
+  #app_tab_bar: TabBar { ... }
+  #nav_back_btn: IconBtn { ... }   // internal helper
+}
+```
+
+LINT-050: importing a non-exported item from a fragment with explicit exports is an error.
+
+---
+
+### 46.4 Re-export (barrel fragments)
+
+A fragment may re-export items from other fragments to create a single import point for a design system:
+
+```ssdl
+FRAGMENT design_system v3
+
+FRAGMENT_META {
+  owner: Platform Team
+  changelog: { v3: "Add copy.errors namespace", v2: "...", v1: "..." }
+}
+
+import { #app_nav, #app_tab_bar } from "./navigation.fragment.ssdl" at v2
+import { copy.common, copy.errors } from "./copy.fragment.ssdl" at v1
+import { ERR-NETWORK, ERR-TIMEOUT, ERR-500 } from "./errors.fragment.ssdl" at v1
+
+// Re-export everything for consumers
+export #app_nav
+export #app_tab_bar
+export copy.common
+export copy.errors
+export ERR-NETWORK
+export ERR-TIMEOUT
+export ERR-500
+```
+
+Consuming screens then import from one place:
+
+```ssdl
+import { #app_nav, copy.common, ERR-NETWORK } from "@shared/design_system.ssdl" at v3
+```
+
+---
+
+### 46.5 Fragments importing fragments
+
+Fragments may import from other fragments using the same syntax as screens. The same transitive dependency and circular
+import rules apply — the full import graph across all fragment and screen files must be acyclic (LINT-047).
+
+---
+
+### 46.6 Fragment file example
+
+```ssdl
+FRAGMENT common_errors v1
+
+FRAGMENT_META {
+  owner: Platform/API Team
+  last_updated: 2026-06-09
+  changelog: {
+    v1: "Initial common error handlers — network, timeout, server"
+  }
+}
+
+export ERR-NETWORK
+export ERR-TIMEOUT
+export ERR-500
+
+ERRORS {
+  ERR-NETWORK {
+    when: network unavailable
+    ui: show #error_banner with copy.common.error.network
+    recovery: retry after network returns
+  }
+
+  ERR-TIMEOUT {
+    when: request exceeded timeout_ms threshold
+    ui: show #error_banner with copy.common.error.generic
+    recovery: user retries
+  }
+
+  ERR-500 {
+    when: API returns 5xx
+    ui: show #error_banner with copy.common.error.generic
+    recovery: user retries; do not auto-retry in auth context
+  }
+}
+```
+
+---
+
+## 47. Screen variants and inheritance
 
 Use `extends` to create a variant that inherits all sections from a base screen and applies targeted overrides. This
 avoids full duplication when screens differ by 10–30%.
@@ -4615,7 +4722,7 @@ OVERRIDE {
 }
 ```
 
-### 44.1 OVERRIDE directives
+### 47.1 OVERRIDE directives
 
 | Directive  | Meaning                                         |
 |------------|-------------------------------------------------|
@@ -4624,7 +4731,7 @@ OVERRIDE {
 | `replace:` | Replace an item by ID with a new definition     |
 | `+ "text"` | Append a list item (in `SCOPE.out`, `SCOPE.in`) |
 
-### 44.2 Inheritance rules
+### 47.2 Inheritance rules
 
 - All sections from the base screen are inherited unless overridden.
 - `SCREEN` name and version are always replaced; do not carry over from base.
@@ -4634,7 +4741,7 @@ OVERRIDE {
 
 ---
 
-## 45. Compact mode
+## 48. Compact mode
 
 Compact mode is useful for early drafts.
 
@@ -4689,7 +4796,7 @@ AC
   Given 500 Then show generic error
 ```
 
-### 45.1 Compact mode grammar rules
+### 48.1 Compact mode grammar rules
 
 | Element          | Compact form                                    | Full form equivalent                                                                       |
 |------------------|-------------------------------------------------|--------------------------------------------------------------------------------------------|
@@ -4708,7 +4815,7 @@ Compact mode can be expanded into full mode before engineering handoff.
 
 ---
 
-## 46. Default mobile screen layout pattern
+## 49. Default mobile screen layout pattern
 
 Most mobile screens can start with this structure.
 
@@ -4761,10 +4868,10 @@ UI {
 
 ---
 
-## 47. Full example: Login screen
+## 50. Full example: Login screen
 
 A complete, production-grade Login screen example is maintained in [`sample.login.ssdl`](sample.login.ssdl).
-It demonstrates every major SSDL section (§7–§43) applied to a real screen, including feature flags,
+It demonstrates every major SSDL section (§7–§44) applied to a real screen, including feature flags,
 route params, model with derived fields, UI layout, states and state transitions, lifecycle handlers,
 validation (sync, cross-field, and async), business rules, pseudocode actions, flow, API contracts,
 navigation with replace-stack, analytics with privacy, accessibility with focus order and screen reader
@@ -4772,40 +4879,40 @@ labels, errors, and acceptance criteria.
 
 ---
 
-## 48. UI directive vocabulary reference
+## 51. UI directive vocabulary reference
 
 Layout and motion vocabulary (positions, sizes, alignment, spacing, layers, behaviors, animation) is defined — with
-semantics and examples — in the body (§19–§24, §32); the subsections below for those families are pointers, not
-independent definitions. The remaining subsections (§48.7 onward) are the authoritative catalog of component value
-enums referenced from §15, §16a, and §26. When a token here differs from the body, **the body governs.**
+semantics and examples — in the body (§22–§27, §33); the subsections below for those families are pointers, not
+independent definitions. The remaining subsections (§51.7 onward) are the authoritative catalog of component value
+enums referenced from §17, §19, and §29. When a token here differs from the body, **the body governs.**
 
-### 48.1 Positions
+### 51.1 Positions
 
 Anchor, relative (`below(#id)`, `right_of(#id)`…), inside/overlay, sticky, and floating positions — defined with
-semantics and examples in **§19**.
+semantics and examples in **§22**.
 
-### 48.2 Sizes
+### 51.2 Sizes
 
 Base size tokens (`xxs`–`xxl`), width/height hints (`w:fill`, `h:hug`…), and relative sizing (`same_w(#id)`,
-`smaller(#id, n)`…) — defined in **§21**.
+`smaller(#id, n)`…) — defined in **§24**.
 
-### 48.3 Alignment
+### 51.3 Alignment
 
-Simple, axis (`main:`/`cross:`), and reference alignment (`align_to(#id.left)`, `baseline_of(#id)`) — defined in **§20**.
+Simple, axis (`main:`/`cross:`), and reference alignment (`align_to(#id.left)`, `baseline_of(#id)`) — defined in **§23**.
 
-### 48.4 Spacing
+### 51.4 Spacing
 
-Spacing tokens (`none`, `xxs`–`xxl`) and directional `pad:`/`margin:`/`inset:` forms — defined in **§22**.
+Spacing tokens (`none`, `xxs`–`xxl`) and directional `pad:`/`margin:`/`inset:` forms — defined in **§25**.
 
-### 48.5 Layers
+### 51.5 Layers
 
-Layer and z-order tokens (`above(#id)`, `below(#id)`, `z:0`–`z:toast`) — defined in **§23**.
+Layer and z-order tokens (`above(#id)`, `below(#id)`, `z:0`–`z:toast`) — defined in **§26**.
 
-### 48.6 Behaviors
+### 51.6 Behaviors
 
-Runtime layout behaviors (`safe_area_aware`, `avoid_keyboard`, `stack_on_small_screen`…) — defined in **§24**.
+Runtime layout behaviors (`safe_area_aware`, `avoid_keyboard`, `stack_on_small_screen`…) — defined in **§27**.
 
-### 48.7 Style tokens (typography)
+### 51.7 Style tokens (typography)
 
 Use `style:` on text-bearing components to indicate typographic intent. Exact rendering is determined by the design
 system.
@@ -4829,7 +4936,7 @@ code
 link
 ```
 
-### 48.8 Keyboard types
+### 51.8 Keyboard types
 
 Use `keyboard:` on Input, TextArea, and Search components.
 
@@ -4846,7 +4953,7 @@ ascii          // ASCII-only (iOS)
 
 Note: `password` keyboard type is handled by the `Pwd` component; do not set `keyboard:` on `Pwd`.
 
-### 48.9 Autocomplete types
+### 51.9 Autocomplete types
 
 Use `autocomplete:` on Input, Pwd, and Search components to hint the OS credential/autofill system.
 
@@ -4870,12 +4977,12 @@ one_time_code     // SMS OTP
 off               // Explicitly disable autocomplete
 ```
 
-### 48.10 Animation tokens
+### 51.10 Animation tokens
 
-Enter/exit, loop, speed, and easing animation tokens are defined in **§32.1**; `transition: shared(<key>)` for
-shared-element transitions is covered in **§32.2**.
+Enter/exit, loop, speed, and easing animation tokens are defined in **§33.1**; `transition: shared(<key>)` for
+shared-element transitions is covered in **§33.2**.
 
-### 48.11 Map zoom levels
+### 51.11 Map zoom levels
 
 ```txt
 street           // Individual buildings visible
@@ -4885,7 +4992,7 @@ region           // State/county level
 country          // Country overview
 ```
 
-### 48.12 Scanner formats
+### 51.12 Scanner formats
 
 ```txt
 qr               // QR code
@@ -4897,7 +5004,7 @@ aztec            // Aztec code
 all              // Attempt all supported formats
 ```
 
-### 48.13 Status values
+### 51.13 Status values
 
 ```txt
 online
@@ -4908,14 +5015,14 @@ do_not_disturb
 custom           // Use color: to specify
 ```
 
-### 48.14 Drawer sides
+### 51.14 Drawer sides
 
 ```txt
 left
 right
 ```
 
-### 48.15 Popover placement
+### 51.15 Popover placement
 
 ```txt
 top
@@ -4925,7 +5032,7 @@ right
 auto             // Platform picks the best placement based on available space
 ```
 
-### 48.16 Step indicator styles
+### 51.16 Step indicator styles
 
 ```txt
 dots             // Filled/unfilled circles
@@ -4934,7 +5041,7 @@ bars             // Segmented horizontal bars
 progress_bar     // Single linear bar showing completion fraction
 ```
 
-### 48.17 Color picker modes
+### 51.17 Color picker modes
 
 ```txt
 hex              // Single hex input
@@ -4944,7 +5051,7 @@ hsb              // Hue/saturation/brightness sliders
 palette          // Fixed set of swatches from palette:
 ```
 
-### 48.18 Tag styles
+### 51.18 Tag styles
 
 ```txt
 filled           // Solid background color (default)
@@ -4953,7 +5060,7 @@ ghost            // No border, muted background
 tonal            // Lightly tinted background matching the color token
 ```
 
-### 48.19 Rating styles
+### 51.19 Rating styles
 
 ```txt
 star             // Five-star rating (default)
@@ -4961,7 +5068,7 @@ heart            // Heart icons
 thumb            // Thumbs up/down binary
 ```
 
-### 48.20 Table column definition
+### 51.20 Table column definition
 
 A column definition inside `columns:`:
 
@@ -4977,14 +5084,14 @@ A column definition inside `columns:`:
 | `sortable` | Boolean — column header tappable for sort         |
 | `frozen`   | Boolean — column stays fixed on horizontal scroll |
 
-### 48.21 Progress styles
+### 51.21 Progress styles
 
 ```txt
 linear           // Horizontal track bar
 circular         // Ring or donut
 ```
 
-### 48.22 Aspect ratio tokens
+### 51.22 Aspect ratio tokens
 
 ```txt
 square           // 1:1
@@ -4994,7 +5101,7 @@ tall             // 9:16
 auto             // Natural content size
 ```
 
-### 48.23 QR error correction levels
+### 51.23 QR error correction levels
 
 ```txt
 L    // ~7% data recovery
@@ -5003,7 +5110,7 @@ Q    // ~25% data recovery
 H    // ~30% data recovery — use when QR may be partially obscured
 ```
 
-### 48.24 Trend directions
+### 51.24 Trend directions
 
 Used by `Stat` component (`trend:` directive).
 
@@ -5013,7 +5120,7 @@ down             // Value decreased (may be positive or negative depending on me
 neutral          // No significant change
 ```
 
-### 48.25 Selection modes
+### 51.25 Selection modes
 
 Used by `ToggleGroup` (`selection:`) and `Table` (`selection:`).
 
@@ -5023,7 +5130,7 @@ single           // One item active at a time
 multi            // Multiple items may be active simultaneously
 ```
 
-### 48.26 Orientation
+### 51.26 Orientation
 
 Used by `Carousel` (`orientation:`).
 
@@ -5032,7 +5139,7 @@ horizontal       // Swipe left/right (default)
 vertical         // Swipe up/down
 ```
 
-### 48.27 Location result types
+### 51.27 Location result types
 
 Used by `LocationInput` (`result_types:`).
 
@@ -5044,7 +5151,7 @@ establishment    // Named places — restaurants, shops, landmarks
 all              // All result types (default)
 ```
 
-### 48.28 EmptyState types
+### 51.28 EmptyState types
 
 Used by `EmptyState` (`type:` directive). Drives default illustration and heading style in the design system.
 
@@ -5059,7 +5166,7 @@ custom           // Custom — pair with an explicit illustration: and title:
 
 ---
 
-## 49. Ambiguity and conflict-resolution rules
+## 52. Ambiguity and conflict-resolution rules
 
 Use these rules when the spec contains overlapping directives.
 
@@ -5083,21 +5190,21 @@ Use these rules when the spec contains overlapping directives.
 
 ---
 
-## 50. Completeness checklist
+## 53. Completeness checklist
 
 Run this before marking a screen spec `ready`. The full per-section checklist is maintained in
 [`completeness-checklist.md`](completeness-checklist.md).
 
 ---
 
-## 51. Linting rules for automated review
+## 54. Linting rules for automated review
 
 The full catalogue of `LINT-xxx` rules — usable by a script, AI reviewer, or human reviewer — is maintained in
 [`lint-rules.md`](lint-rules.md).
 
 ---
 
-## 52. Recommended adoption workflow
+## 55. Recommended adoption workflow
 
 1. Draft the screen in compact mode.
 2. Declare `FEATURE_FLAGS` and `PERMISSIONS` before expanding the model.
@@ -5108,26 +5215,26 @@ The full catalogue of `LINT-xxx` rules — usable by a script, AI reviewer, or h
 7. Add `ANALYTICS` (with `privacy` and `consent` blocks) and `A11Y` (including `roles`).
 8. Write `ACCEPTANCE` criteria covering happy path, validations, errors, navigation, re-view behavior, and
    accessibility.
-9. Run the completeness checklist (§50).
+9. Run the completeness checklist (§53).
 10. Resolve `OPEN_QUESTIONS` or mark remaining ones with `blocks:` and `owner:`.
 11. Mark `META.status: ready`.
 
 ---
 
-## 53. Minimal production template
+## 56. Minimal production template
 
 A minimal, fill-in-the-blanks production template — every section in recommended order — is maintained in
 [`template.minimal.ssdl`](template.minimal.ssdl). Copy it as the starting point for a new screen spec.
 
 ---
 
-## 54. Spec-to-implementation traceability
+## 57. Spec-to-implementation traceability
 
 SSDL assigns stable IDs to business rules (`BR-xx`), validation rules (`VAL-xx`), error cases (`ERR-xx`), and acceptance
 criteria (`AC-xx`). Teams should carry these IDs into implementation to make the connection between spec and code
 auditable.
 
-### 54.1 Recommended traceability patterns
+### 57.1 Recommended traceability patterns
 
 **In source code** — reference the rule ID in a comment near the implementation:
 
@@ -5160,7 +5267,7 @@ describe('AC-07: successful login stores tokens and navigates', () => {
 feat(login): implement BR-03 redirect-after-login and VAL-01/02 email validation
 ```
 
-### 54.2 What NOT to put in implementation code
+### 57.2 What NOT to put in implementation code
 
 - Do not replicate spec prose in code comments — the spec is the source of truth for intent.
 - Do not embed `AC-xx` IDs in production runtime code — they belong in tests and tooling only.
@@ -5168,7 +5275,7 @@ feat(login): implement BR-03 redirect-after-login and VAL-01/02 email validation
 
 ---
 
-## 55. Closing recommendation
+## 58. Closing recommendation
 
 Use SSDL as a shared contract. Keep visual design details in your design tool, but use SSDL to make the behavior, data,
 layout intent, state transitions, lifecycle, permissions, animations, edge cases, analytics, accessibility, and QA

@@ -65,8 +65,8 @@ See [`sample.login.ssdl`](sample.login.ssdl) for the same screen written out in 
 A complete file is a `SCREEN` declaration, optional `import` lines, then a series of sections in a recommended order:
 
 ```
-SCREEN · META · FEATURE_FLAGS · PURPOSE · SCOPE · ROUTE · PERMISSIONS · ACTORS
-ENTRY · EXIT · MODEL · DATA · COPY · UI · STATES · LIFECYCLE · ANIMATION
+SCREEN · META · PURPOSE · SCOPE · ROUTE · ACTORS · ENTRY · EXIT · PERMISSIONS
+FEATURE_FLAGS · MODEL · DATA · COPY · UI · STATES · LIFECYCLE · ANIMATION
 VALIDATION · VALIDATION_UI · BUSINESS_RULES · ACTIONS · FLOW · API · NAVIGATION
 ANALYTICS · A11Y · ERRORS · ACCEPTANCE · OPEN_QUESTIONS
 ```

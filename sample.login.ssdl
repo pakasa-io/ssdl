@@ -16,16 +16,6 @@ META {
   }
 }
 
-FEATURE_FLAGS {
-  biometric_login_prompt {
-    when enabled:
-      show #biometric_btn
-    when disabled:
-      hide #biometric_btn
-    default: disabled
-  }
-}
-
 PURPOSE {
   Allow registered users to authenticate with email and password.
 }
@@ -83,6 +73,16 @@ EXIT {
 
   - to: Signup
     when: tap #signup_link
+}
+
+FEATURE_FLAGS {
+  biometric_login_prompt {
+    when enabled:
+      show #biometric_btn
+    when disabled:
+      hide #biometric_btn
+    default: disabled
+  }
 }
 
 MODEL {
