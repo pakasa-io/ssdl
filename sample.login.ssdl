@@ -57,7 +57,7 @@ ROUTE {
 
 ACTORS {
   primary: RegisteredUser
-  systems: [AuthAPI, AnalyticsService, SecureStorage]
+  systems: [LoginAPI, AnalyticsService, SecureStorage]
 }
 
 ENTRY {
@@ -147,6 +147,7 @@ UI {
     size: w:fill h:fill
     pad: lg
     behavior: [scroll_when_keyboard_open, dismiss_keyboard_on_scroll]
+    pagination: none
     children: [#header, #form, #secondary_actions]
   }
 
@@ -169,7 +170,6 @@ UI {
   #title: Txt {
     in: #header
     text: copy.login.title
-    pos: below(#logo, md)
     align: center
     size: w:fill h:hug
     style: heading_lg
@@ -178,7 +178,6 @@ UI {
   #subtitle: Txt {
     in: #header
     text: copy.login.subtitle
-    pos: below(#title, xs)
     align: center
     size: w:fill h:hug
     style: body_md
@@ -201,6 +200,7 @@ UI {
     autocomplete: email
     autocapitalize: none
     size: w:fill h:lg
+    style: body_md
     error: errorFor($email)
     on blur: validate $email
     a11y: "Email address, required"
@@ -212,6 +212,7 @@ UI {
     bind: $password
     autocomplete: password
     size: same_w(#email_input) h:lg
+    style: body_md
     error: errorFor($password)
     on blur: validate $password
     on submit: submitLogin() when $can_submit
@@ -221,9 +222,9 @@ UI {
   #forgot_link: Link {
     in: #form
     text: copy.login.forgot_password
-    pos: below(#password_input, sm)
     align: end
     size: w:hug h:md
+    style: label_md
     on tap: nav ForgotPassword
   }
 
@@ -232,6 +233,8 @@ UI {
     label: copy.login.remember_me
     bind: $remember_me
     size: w:fill h:md
+    style: body_md
+    validation: none
     a11y: "Remember me"
   }
 
@@ -239,8 +242,8 @@ UI {
     in: #form
     type: error
     text: $error_msg
-    pos: below(#remember_me_chk, sm)
     size: w:fill h:wrap
+    style: body_md
     visible_when: $error_msg.exists
     animate: slide_down(sm)
     a11y: announce_when_visible
@@ -249,7 +252,6 @@ UI {
   #login_btn: Btn {
     in: #form
     text: copy.login.submit
-    pos: below(#error_banner, md)
     size: w:fill h:lg
     style: label_lg
     enabled_when: $can_submit
@@ -277,8 +279,8 @@ UI {
   #signup_link: Link {
     in: #secondary_actions
     text: copy.login.signup_link
-    pos: right_of(#signup_prompt, xs)
     size: w:hug h:hug
+    style: label_md
     on tap: nav Signup
   }
 
@@ -387,27 +389,26 @@ VALIDATION_UI {
 }
 
 BUSINESS_RULES {
-  BR-01: when $form_valid == false => disable #login_btn
+  // Button enable/disable and loading-disable are owned by the components'
+  // enabled_when:/loading_when: directives and summarized in STATES — not
+  // re-encoded here (§28.3 authority chain; §34: rules avoid visual styling).
 
-  BR-02: when $is_loading == true =>
-    disable #email_input, #password_input, #login_btn, #forgot_link, #signup_link
-
-  BR-03: when LoginAPI.login returns 401 =>
+  BR-01: when LoginAPI.login returns 401 =>
     $error_msg := copy.login.error.invalid_credentials
 
-  BR-04: when LoginAPI.login returns 423 =>
+  BR-02: when LoginAPI.login returns 423 =>
     $error_msg := copy.login.error.account_locked
 
-  BR-05: when LoginAPI.login returns 429 =>
+  BR-03: when LoginAPI.login returns 429 =>
     $error_msg := copy.login.error.rate_limited
 
-  BR-06: when network unavailable =>
+  BR-04: when network unavailable =>
     $error_msg := copy.common.error.network
 
-  BR-07: when login succeeds && $redirect_to.exists =>
+  BR-05: when login succeeds && $redirect_to.exists =>
     nav $redirect_to
 
-  BR-08: when login succeeds && $redirect_to.empty =>
+  BR-06: when login succeeds && $redirect_to.empty =>
     nav Home
 }
 
@@ -442,7 +443,7 @@ ACTIONS {
       email_present: $email.exists
     }
 
-    response = await LoginAPI.login({
+    response = ~> LoginAPI.login({
       email: trim($email),
       password: $password,
       remember_me: $remember_me

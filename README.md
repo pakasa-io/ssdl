@@ -40,7 +40,8 @@ MODEL {
   $password!: String := ""
   $email_valid    ==> matchesEmail(trim($email))
   $password_valid ==> length($password) >= 8
-  $can_submit     ==> $email_valid && $password_valid && !@loading
+  $is_loading     ==> @loading
+  $can_submit     ==> $email_valid && $password_valid && !$is_loading
 }
 
 UI {
@@ -81,7 +82,7 @@ Only **`SCREEN`, `ROUTE`, `MODEL`, `UI`, `STATES`, `FLOW`, and `ACCEPTANCE`** ar
 | `#id` | UI component ID | `#login_btn` |
 | `@state` | Screen state | `@loading` |
 | `:=` | Default value / assignment | `$loading := false` |
-| `==>` | Derived / computed field | `$can_submit ==> $form_valid && !@loading` |
+| `==>` | Derived / computed field | `$can_submit ==> $form_valid && !$is_loading` |
 | `=>` | Effect / result | `401 => show #error_banner` |
 | `->` | Navigation / transition | `login.success -> Home` |
 | `~>` | Async call / external op | `submit ~> POST /auth/login` |

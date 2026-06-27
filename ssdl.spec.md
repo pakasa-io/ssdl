@@ -105,7 +105,7 @@ screen.onboarding.choose-plan.ssdl
 | `#id`                | UI component ID                                          | `#login_btn`                                      |
 | `@state`             | Screen state                                             | `@loading`                                        |
 | `:=`                 | Assignment or default value                              | `$loading := false`                               |
-| `==>`                | Derived/computed field                                   | `$can_submit ==> $form_valid && !$loading`        |
+| `==>`                | Derived/computed field                                   | `$can_submit ==> $form_valid && !$is_loading`        |
 | `=>`                 | Effect/result                                            | `401 => show #error_banner`                       |
 | `->`                 | Navigation or transition                                 | `login.success -> Home`                           |
 | `~>`                 | Async call / external operation                          | `submit ~> POST /auth/login`                      |
@@ -217,6 +217,14 @@ For input-like components, `label:` represents the user-visible field label.
   label: copy.login.email_label
 }
 ```
+
+**`text:` vs `label:` — pick by role:**
+
+- `text:` is a component's own visible content — the string that *is* the element. Use it on display components (`Txt`,
+  `RichTxt`, `Banner`) and on action rows whose body is the text (`Btn`, `Link`, `ActionSheet` actions, `SpeedDialItem`,
+  `ContextMenuItem`).
+- `label:` is a separate affordance descriptor for a control that carries other chrome — an input's field label, a
+  `Chk` / `Switch` caption, a `TabItem` / `DrawerItem` label beside its icon, or a `FormGroup` section label.
 
 ---
 
@@ -750,7 +758,8 @@ StateId         := "@" Identifier
 CopyKey         := "copy" "." (Identifier ".")* Identifier
 RuleId          := ("BR" | "VAL" | "ERR" | "AC") "-" digit+
 Condition       := expression returning Boolean
-Effect          := assignment | uiEffect | navigation | actionCall | eventEmit
+Effect          := assignment | uiEffect | navigation | actionCall | asyncCall | eventEmit
+AsyncCall       := [FieldId "="] "~>" (ApiMethod | HttpCall)   // async external/network call; binds result when FieldId present (§35.1, §36)
 String          := quoted text
 Block           := "{" lines "}"
 Comment         := "//" rest-of-line      // inline or full-line; "#" is reserved for ComponentId and must not be used as a comment delimiter
@@ -1981,9 +1990,9 @@ anchor.
 #photo_action_sheet: ActionSheet {
   title: copy.profile.change_photo_title
   actions: [
-    { label: copy.profile.take_photo,    style: default,     on tap: openCamera() },
-    { label: copy.profile.choose_library, style: default,    on tap: openLibrary() },
-    { label: copy.profile.remove_photo,  style: destructive, on tap: removePhoto() }
+    { text: copy.profile.take_photo,     style: default,     on tap: openCamera() },
+    { text: copy.profile.choose_library, style: default,     on tap: openLibrary() },
+    { text: copy.profile.remove_photo,   style: destructive, on tap: removePhoto() }
   ]
   cancel_label: copy.common.cancel
   visible_when: $photo_sheet_open
@@ -4090,7 +4099,8 @@ ACTIONS {
 |---------------------------|---------------------------|
 | `if condition:`           | Conditional branch        |
 | `match value:`            | Switch/case branch        |
-| `await`                   | Async operation           |
+| `await`                   | Await an in-process async op (local DB, timer)  |
+| `$x = ~> Api.method(...)` | Async external/network call; binds result       |
 | `return`                  | Stop current action       |
 | `set @state`              | Change screen state       |
 | `$field := value`         | Assign model value        |
@@ -4098,6 +4108,9 @@ ACTIONS {
 | `nav Destination`         | Navigate                  |
 | `validate $field`         | Run validation rules      |
 | `recompute $field`        | Recalculate derived value |
+
+Use `~>` for operations that cross the app boundary (API, network, IPC); reserve `await` for in-process async (local
+database, timers, file I/O). In FLOW, `on <event> ~> <Api.method>` dispatches the external call directly (§36).
 
 ---
 
@@ -4129,11 +4142,17 @@ FLOW {
 }
 ```
 
-A flow line has this shape:
+A flow line has one of these shapes:
 
 ```ssdl
 on <event> [target] [when <condition>] do <effect>
+on <event> [target] [when <condition>] ~> <ExternalOp>   // dispatch an async API/network call directly
 ```
+
+The `~>` form wires an event straight to an asynchronous external operation — e.g.
+`on tap #login_btn when $can_submit ~> LoginAPI.login` — for screens that need no hand-written `ACTIONS` function; its
+success and failure route through `STATE_TRANSITIONS` (`api.success` / `api.failure`) and `ERRORS`. Use `do <action>()`
+when the response needs procedural handling (validation, analytics, branching).
 
 **FLOW event names** and **component `on <event>:` directive names** share the same vocabulary — `tap`, `long_press`,
 `swipe_left`, `change`, `blur`, `submit`. The only difference is syntax: component blocks use
@@ -4633,9 +4652,9 @@ MODEL
   $email!: Email := ""
   $password!: String := ""
   $error_msg?: String
-  $loading: Bool := false
-  $valid ==> email($email) && len($password) >= 8
-  $can_submit ==> $valid && !$loading
+  $valid ==> matchesEmail(trim($email)) && length($password) >= 8
+  $is_loading ==> @loading
+  $can_submit ==> $valid && !$is_loading
 
 UI
   #screen: SafeArea size:w:screen h:screen
@@ -4649,9 +4668,9 @@ UI
 
 VAL
   $email.empty => "Email is required"
-  !$email.email => "Enter a valid email"
+  !$email.matches(email_regex) => "Enter a valid email"
   $password.empty => "Password is required"
-  len($password)<8 => "Password must be at least 8 characters"
+  length($password) < 8 => "Password must be at least 8 characters"
 
 FLOW
   view => emit login_viewed
@@ -4661,9 +4680,9 @@ FLOW
 ACTION submitLogin()
   if !$can_submit return
   set @loading
-  res = await POST /auth/login { email:$email, password:$password }
+  res = ~> POST /auth/login { email:$email, password:$password }
   match res.status:
-    200 => store res.token; emit login_success; nav Home
+    200 => securelyStore("auth_token", res.token); emit login_success; nav Home
     401 => $error_msg="Email or password is incorrect."; set @error
     500 => $error_msg="Something went wrong."; set @error
     else => $error_msg="Something went wrong."; set @error
@@ -4750,7 +4769,7 @@ UI {
 
 ## 47. Full example: Login screen
 
-A complete, production-grade Login screen example is maintained in [`examples/login.ssdl`](examples/login.ssdl).
+A complete, production-grade Login screen example is maintained in [`sample.login.ssdl`](sample.login.ssdl).
 It demonstrates every major SSDL section (§7–§43) applied to a real screen, including feature flags,
 route params, model with derived fields, UI layout, states and state transitions, lifecycle handlers,
 validation (sync, cross-field, and async), business rules, pseudocode actions, flow, API contracts,
@@ -5174,7 +5193,7 @@ multi            // Multiple items may be active simultaneously
 
 ### 48.26 Orientation
 
-Used by `Pager` (`orientation:`).
+Used by `Carousel` (`orientation:`).
 
 ```txt
 horizontal       // Swipe left/right (default)
@@ -5366,13 +5385,13 @@ LINT-022: ANALYTICS.privacy block is required when the screen processes auth, pa
 LINT-023: STATE_TRANSITIONS must be present when STATES defines three or more states.
 LINT-024: Every animate: or transition: directive must have a corresponding reduced_motion alternative in ANIMATION.
 LINT-025: Screen variants (extends) must not redefine SCREEN version; OVERRIDE is the only permitted diff mechanism.
+LINT-026: Derived fields (==>) must not form circular dependencies; each derived field's dependency graph must be acyclic.
+LINT-027: STATES must declare initial: when STATE_TRANSITIONS is present; the declared initial state must be defined in STATES.
+LINT-028: ANALYTICS.privacy.consent must be present when ANALYTICS.privacy block is required (auth/payment/personal-data screens).
 LINT-029: Every state defined in STATES must be reachable via at least one transition in STATE_TRANSITIONS (when STATE_TRANSITIONS is present).
 LINT-030: Every destination in NAVIGATION must also appear in EXIT (and vice versa); entries present in one but absent from the other must have a // reason: comment.
 LINT-031: Every component ID referenced in FLOW event targets must exist in the UI section.
 LINT-032: Every entry in ACTORS.systems must correspond to an API or DATA section entry, or carry a // reason: comment explaining the exception.
-LINT-026: Derived fields (==>) must not form circular dependencies; each derived field's dependency graph must be acyclic.
-LINT-027: STATES must declare initial: when STATE_TRANSITIONS is present; the declared initial state must be defined in STATES.
-LINT-028: ANALYTICS.privacy.consent must be present when ANALYTICS.privacy block is required (auth/payment/personal-data screens).
 LINT-033: OTPInput must declare length:.
 LINT-034: Carousel must declare on slide_change: or explicitly annotate // on slide_change: not tracked.
 LINT-035: NavBar must declare title:.
