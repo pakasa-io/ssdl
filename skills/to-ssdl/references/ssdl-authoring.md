@@ -1,0 +1,113 @@
+# SSDL authoring — grounding, conventions, and a principal-UX pass
+
+The SSDL specification is the language authority. This file covers how to consume it, where files go, and how a
+principal mobile UI/UX engineer fills each section. It does **not** restate the grammar — load that from the spec.
+
+## Ground in the spec (the load order)
+
+Follow `agents/AGENT_PROTOCOL.md`. In practice:
+
+1. Read **`agents/agent.manifest.yml`** first — the index. Every pointer in it is relative to the **repo root**.
+2. For any UI work, `load(bundles.ui_core)` (the 12 layout/directive section files) **before** interpreting a
+   component or layout directive — it is the mandatory base.
+3. Per screen, load only what is needed: `sections.<keyword>` for each section being authored (e.g.
+   `sections.route`, `sections.model`, `sections.validation`), `components.<Name>.f` for each component used (and
+   resolve its `with:` / `needs:`), and `enums` when a value vocabulary is referenced.
+4. `components ∪ standard` is the complete, authoritative component set. **Use only those.** A `standard` component
+   (no `f:`) is fully covered by `ui_core` — its absence of a file is not missing documentation.
+5. Defer to loaded file content for authority rules; never author from memory of the language.
+
+For a full linear read when genuinely needed, `ssdl.spec.md` is the generated single file — but prefer slices.
+
+## File naming and placement
+
+```
+screen.<feature>.<screen-name>.ssdl     # one screen per file
+<category>.<name>.fragment.ssdl          # shared, importable fragments
+```
+
+Examples: `screen.checkout.cart.ssdl`, `screen.auth.login.ssdl`, `shared.navigation.fragment.ssdl`,
+`design.tokens.fragment.ssdl`. Group a journey's screens together (a folder per journey or per feature reads well).
+Decide placement with the user when generating into an existing project — match what is already there.
+
+## Mandatory vs optional sections
+
+Mandatory for a production screen: **`SCREEN`, `ROUTE`, `MODEL`, `UI`, `STATES`, `FLOW`, `ACCEPTANCE`.** Everything
+else is added when the operation needs it — but the production default is to author all relevant sections, even
+short ones. Use the recommended section order (see `assets/template.minimal.ssdl`); keep sections in that order so
+files are scannable.
+
+## Compact vs full mode
+
+Draft in **compact mode** to explore a journey quickly (the dense `#id: Btn "Label" on tap:fn()` form). Expand to
+**full mode** for handoff — every section populated, ready for engineering and QA. `assets/sample.login.ssdl` is
+the canonical full-mode reference; `assets/template.minimal.ssdl` is the fill-in-the-blanks skeleton in the correct
+order. Start from the template, not a blank file.
+
+## Symbols (quick reference; spec §3 is authority)
+
+`$field` model field · `!`/`?` required/optional · `#id` component · `@state` screen state · `:=` default/assign ·
+`==>` derived/computed · `=>` effect/result · `->` navigation/transition · `~>` async call · `on/when/do`
+trigger/guard/action · `BR-/VAL-/ERR-/AC-xx` rule/validation/error/acceptance IDs.
+
+## A principal-UX pass over each section
+
+Author each section as a senior designer-engineer would — these are the judgments that make the output good, not
+just valid:
+
+- **META** — owner, platform, status, changelog. Set `status: draft` until the completeness checklist passes.
+- **PURPOSE / SCOPE** — one crisp reason the screen exists; `SCOPE.out` is as important as `in` to prevent creep.
+- **ROUTE** — pick `access:` deliberately (public/authenticated/optional); mark required `params:` with `!`; the
+  path is the deep-link contract.
+- **ACTORS** — humans and systems the screen touches; every `ACTORS.systems` entry should map to an `API`/`DATA`
+  entry or carry a `// reason:`.
+- **ENTRY / EXIT** — the inbound/outbound edges of the navigation graph (see `navigation-stitching.md`). Be
+  exhaustive and honest about back.
+- **PERMISSIONS** — present whenever the screen touches camera, location, notifications, contacts, biometrics;
+  state `request_when:` and the denied path.
+- **FEATURE_FLAGS** — gate any conditional component or behavior here; reference the flag from `UI`/`FLOW`.
+- **MODEL** — the screen's state shape; push logic into derived fields (`==>`) rather than duplicating it in
+  actions; give sensible defaults (`:=`).
+- **DATA** — `source:` and explicit `read:`/`write:`; declare cache strategy for remote reads.
+- **COPY** — user-facing strings as keys (parameterized with ICU where needed); keep tone consistent.
+- **UI** — layout as **hints, not pixels** (`center`, `below(#x, md)`, `w:fill`, `sticky(bottom.safe)`); choose
+  components from the taxonomy only; ensure every text-bearing component has a `style:` token; cover loading,
+  empty, error, success states in the layout, not just the happy path.
+- **STATES / STATE_TRANSITIONS** — enumerate every meaningful state; declare `initial:`; author
+  `STATE_TRANSITIONS` for 3+ states and ensure each state is reachable. `STATE_TRANSITIONS` is canonical over
+  `STATES`.
+- **LIFECYCLE** — re-view, foreground, background behavior; define what refetches or resumes on return.
+- **ANIMATION** — enter/exit/shared-element motion with a `reduced_motion` alternative for every animation.
+- **VALIDATION** — sync, cross-field, and async rules with `VAL-` IDs and user-facing messages.
+- **BUSINESS_RULES** — testable `BR-` rules; do not also encode the same guard in `ACTIONS`.
+- **ACTIONS** — pseudocode for non-trivial behavior; async work shows loading and failure handling.
+- **FLOW** — wire user events to actions/navigation (`on tap #x when guard do fn()`).
+- **API** — request/response shapes, auth, cache, error statuses, timeout, retry.
+- **NAVIGATION** — the executable transitions; reconcile with `EXIT`.
+- **ANALYTICS** — events with trigger + props; include a `privacy` block for auth/payment/personal-data screens.
+- **A11Y** — focus order, labels, touch targets ≥44pt, dynamic type, contrast, reduced motion. Author it, don't
+  bolt it on.
+- **ERRORS** — `ERR-` handlers tied to API/validation failures, with recovery and the UI shown.
+- **ACCEPTANCE** — `AC-` criteria covering happy path, validations, errors, navigation, re-view, and accessibility.
+
+## Reuse with fragments
+
+Pull shared definitions in rather than repeating them:
+
+```ssdl
+import { #app_nav, #app_tab_bar } from "@shared/navigation.ssdl" at v2
+import { copy.common, ERR-NETWORK } from "@shared/design_system.ssdl" at v3
+```
+
+Use `import` for named definitions and `include` for inlined section content. Pin versions with `at v<n>`. Common
+fragments: navigation chrome, design tokens, shared error handlers, common copy, accessibility standards. When a
+pattern appears in 2+ screens of a journey, lift it into a fragment.
+
+## The authority chain (do not violate)
+
+- `STATE_TRANSITIONS` is canonical over `STATES`.
+- Guards live in `BUSINESS_RULES` **or** `ACTIONS`, not both.
+- `ACTORS.systems` ↔ `API`/`DATA`; `NAVIGATION` ↔ `EXIT`; UI child/parent references are mutually consistent.
+
+When unsure of exact syntax for any of the above, load the relevant `sections.<keyword>` file from the manifest —
+that file governs.
