@@ -174,8 +174,7 @@ VALIDATION {
 | `loading:<condition>`  | `loading_when: <condition>`                                                                           |
 | `on <event>: <action>` | component event handler — `on tap: action()`, `on long_press: action()`, `on change: validate $field` |
 | `-> Destination`       | `on tap: nav Destination` when used on an interactive component                                       |
-| `auth:none`            | `auth: not_required`                                                                                  |
-| `auth:req`             | `auth: required`                                                                                      |
+| `access:auth`          | `access: authenticated`                                                                               |
 | `Bool`                 | `Boolean`                                                                                             |
 
 Example:
@@ -853,7 +852,7 @@ Use `ROUTE` to define how the screen is addressed and whether authentication is 
 ROUTE {
   path: /login
   type: screen
-  auth: not_required
+  access: public
   params: {
     entry_source?: String
     redirect_to?: String
@@ -867,8 +866,8 @@ Recommended route fields:
 |--------------------|------------------------------|----------------------------------------------------|
 | `path`             | Canonical route path         | `/login`, `/checkout/payment`                      |
 | `type`             | Presentation mode            | `screen`, `modal`, `bottom_sheet`, `dialog`, `tab` |
-| `auth`             | Auth requirement             | `required`, `not_required`, `optional`             |
-| `auth_roles`       | Role-based gate (optional)   | `admin`, `premium`, `verified`                     |
+| `access`           | Access requirement           | `public`, `authenticated`, `optional`              |
+| `access_roles`     | Role-based gate (optional)   | `admin`, `premium`, `verified`                     |
 | `requires_plan`    | Subscription gate (optional) | `premium`, `pro`                                   |
 | `params`           | Route params                 | `order_id!: ID`                                    |
 | `deep_links`       | External links               | `myapp://login`                                    |
@@ -880,7 +879,7 @@ Example with required params:
 ROUTE {
   path: /orders/:order_id
   type: screen
-  auth: required
+  access: authenticated
   params: {
     order_id!: ID
     open_receipt?: Boolean := false
@@ -1300,7 +1299,7 @@ Concise example:
 
 | Type             | Meaning                                                                                                                                                                                              |
 |------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Banner`         | Inline/global message                                                                                                                                                                                |
+| `Banner`         | Inline/global message; `type:` sets severity — see §16a.45                                                                                                                                                                                |
 | `NetworkBanner`  | Offline/reconnecting persistent notice — always visible while condition holds                                                                                                                        |
 | `Toast`          | Temporary auto-dismissing message                                                                                                                                                                    |
 | `Snackbar`       | Temporary bottom message with optional action                                                                                                                                                        |
@@ -1311,7 +1310,7 @@ Concise example:
 | `StepIndicator`  | Step/page progress — dots, numbers, or bars indicating position in a funnel or onboarding flow                                                                                                       |
 | `EmptyState`     | Structured state region — illustration + title + description + CTA. Use `type:` to express intent: `empty` (no data), `error` (load failed), `offline`, `no_results`, `permission_denied`, `custom`. |
 | `LoadingOverlay` | Full-screen blocking spinner with optional message and cancel                                                                                                                                        |
-| `Modal`          | Arbitrary-content modal container (see §16a.49)                                                                                                                                                                         |
+| `Modal`          | Arbitrary-content modal container (see §16a.44)                                                                                                                                                                         |
 | `Dialog`         | Focused dialog — title + message + confirm button + optional cancel; use `destructive: true` for destructive confirm actions. Replaces `ConfirmDialog` and `DialogBox`.                              |
 | `ActionSheet`    | Option list presented as an overlay — iOS action sheet / Android bottom option menu                                                                                                                  |
 | `Sheet`          | Bottom sheet content container                                                                                                                                                                       |
@@ -1327,7 +1326,7 @@ Concise example:
 | `Scroll`        | Scrollable container                                                                                                         |
 | `PullToRefresh` | Refresh trigger wrapper around a `Scroll` — declares pull gesture and refresh handler                                        |
 | `VStack`        | Vertical stack                                                                                                               |
-| `HStack`        | Horizontal stack; use `wrap: true` for wrapping chip/tag rows (replaces `WrapStack`)                                         |
+| `HStack`        | Horizontal stack; use `wrap: true` for wrapping chip/tag rows                                                                |
 | `ZStack`        | Layered stack                                                                                                                |
 | `Grid`          | Regular-column grid layout; use `masonry: true` for irregular (Pinterest-style) item heights                                 |
 | `Card`          | Grouped content container                                                                                                    |
@@ -1349,7 +1348,7 @@ Concise example:
 | `Tabs`          | Inline tab set within a screen (content switching, not navigation)                                                           |
 | `Accordion`     | Expandable/collapsible section with a tappable header                                                                        |
 | `Collapsible`   | Generic show/hide wrapper — no built-in header affordance; use when you supply your own trigger                              |
-| `Carousel`      | Pageable item strip — use `fill: true` for full-bleed pages (replaces `Pager`); default shows partial peek of adjacent items |
+| `Carousel`      | Pageable item strip — use `fill: true` for full-bleed pages; default shows partial peek of adjacent items                    |
 | `SearchBar`     | Full search UI with input, cancel button, and optional filter affordance; wraps `Search` input                               |
 
 ---
@@ -1602,26 +1601,7 @@ copy-pasting noise into production specs.
 
 ---
 
-### 16a.11 DragHandle (removed — use convention pattern)
-
-`DragHandle` is not a distinct component type. Use a `Divider` or `Icon` with the drag indicator icon, positioned at the
-top-center of a `Sheet`, with `a11y:` set to `"Drag to resize"` or `"Drag to reorder"`. Pair the parent container with
-`behavior: drag_to_reorder` or `behavior: swipe_to_dismiss`.
-
-```ssdl
-// Convention pattern — no DragHandle type needed
-#sheet_handle: Divider {
-  in: #bottom_sheet
-  pos: top.center
-  size: w:md h:xxs
-  style: pill                    // design system token for the rounded pill shape
-  a11y: "Drag to resize panel"
-}
-```
-
----
-
-### 16a.12 OTPInput
+### 16a.11 OTPInput
 
 | Directive                     | Meaning                                      |
 |-------------------------------|----------------------------------------------|
@@ -1647,7 +1627,7 @@ top-center of a `Sheet`, with `a11y:` set to `"Drag to resize"` or `"Drag to reo
 
 ---
 
-### 16a.13 PhoneInput
+### 16a.12 PhoneInput
 
 | Directive            | Meaning                                               |
 |----------------------|-------------------------------------------------------|
@@ -1671,7 +1651,7 @@ top-center of a `Sheet`, with `a11y:` set to `"Drag to resize"` or `"Drag to reo
 
 ---
 
-### 16a.14 TagInput
+### 16a.13 TagInput
 
 | Directive        | Meaning                                     |
 |------------------|---------------------------------------------|
@@ -1698,7 +1678,7 @@ top-center of a `Sheet`, with `a11y:` set to `"Drag to resize"` or `"Drag to reo
 
 ---
 
-### 16a.15 QuantityInput
+### 16a.14 QuantityInput
 
 | Directive | Meaning                      |
 |-----------|------------------------------|
@@ -1723,7 +1703,7 @@ new value. Minimum and maximum values should be announced when limits are reache
 
 ---
 
-### 16a.16 LocationInput
+### 16a.15 LocationInput
 
 | Directive       | Meaning                                                              |
 |-----------------|----------------------------------------------------------------------|
@@ -1748,7 +1728,7 @@ current location" affordance that accesses the device GPS sensor, declare `PERMI
 
 ---
 
-### 16a.17 SegmentedControl
+### 16a.16 SegmentedControl
 
 | Directive   | Meaning                                                         |
 |-------------|-----------------------------------------------------------------|
@@ -1770,7 +1750,7 @@ current location" affordance that accesses the device GPS sensor, declare `PERMI
 
 ---
 
-### 16a.18 ToggleGroup
+### 16a.17 ToggleGroup
 
 | Directive    | Meaning                                            |
 |--------------|----------------------------------------------------|
@@ -1794,7 +1774,7 @@ number of selected options when focus moves away: `"{n} filters selected"`.
 
 ---
 
-### 16a.19 ColorPicker
+### 16a.18 ColorPicker
 
 | Directive  | Meaning                                          |
 |------------|--------------------------------------------------|
@@ -1818,7 +1798,7 @@ number of selected options when focus moves away: `"{n} filters selected"`.
 
 ---
 
-### 16a.20 Scanner
+### 16a.19 Scanner
 
 | Directive       | Meaning                                                                          |
 |-----------------|----------------------------------------------------------------------------------|
@@ -1845,7 +1825,7 @@ silently disabling the button.
 
 ---
 
-### 16a.21 RichTextEditor
+### 16a.20 RichTextEditor
 
 | Directive      | Meaning                                                                              |
 |----------------|--------------------------------------------------------------------------------------|
@@ -1871,7 +1851,7 @@ silently disabling the button.
 
 ---
 
-### 16a.22 SpeedDial and SpeedDialItem
+### 16a.21 SpeedDial and SpeedDialItem
 
 **SpeedDial:**
 
@@ -1921,7 +1901,7 @@ silently disabling the button.
 
 ---
 
-### 16a.23 ContextMenu and ContextMenuItem
+### 16a.22 ContextMenu and ContextMenuItem
 
 **ContextMenu:**
 
@@ -1975,7 +1955,7 @@ anchor.
 
 ---
 
-### 16a.24 ActionSheet
+### 16a.23 ActionSheet
 
 | Directive       | Meaning                                                 |
 |-----------------|---------------------------------------------------------|
@@ -2001,7 +1981,7 @@ anchor.
 
 ---
 
-### 16a.25 EmptyState
+### 16a.24 EmptyState
 
 Single component replaces `EmptyState` and `ErrorState`. The `type:` directive expresses semantic intent and drives
 default illustration selection in the design system — omit `illustration:` to use the type default.
@@ -2040,7 +2020,7 @@ default illustration selection in the design system — omit `illustration:` to 
 
 ---
 
-### 16a.26 Popover
+### 16a.25 Popover
 
 | Directive                 | Meaning                                               |
 |---------------------------|-------------------------------------------------------|
@@ -2062,7 +2042,7 @@ default illustration selection in the design system — omit `illustration:` to 
 
 ---
 
-### 16a.27 Dialog
+### 16a.26 Dialog
 
 Replaces `ConfirmDialog` and `DialogBox`. Single type handles all focused dialog patterns: omit `cancel_label:` for a
 single-button informational dialog; add `cancel_label:` for a two-button choice; set `destructive: true` to style the
@@ -2105,7 +2085,7 @@ confirm action in a destructive color.
 
 ---
 
-### 16a.28 StepIndicator
+### 16a.27 StepIndicator
 
 | Directive  | Meaning                                               |
 |------------|-------------------------------------------------------|
@@ -2127,7 +2107,7 @@ confirm action in a destructive color.
 
 ---
 
-### 16a.29 Progress
+### 16a.28 Progress
 
 `Progress` uses `style:` to choose between linear and circular rendering.
 
@@ -2159,7 +2139,7 @@ confirm action in a destructive color.
 
 ---
 
-### 16a.30 LoadingOverlay
+### 16a.29 LoadingOverlay
 
 | Directive     | Meaning                         |
 |---------------|---------------------------------|
@@ -2182,7 +2162,7 @@ confirm action in a destructive color.
 
 ---
 
-### 16a.31 NetworkBanner
+### 16a.30 NetworkBanner
 
 | Directive           | Meaning                          |
 |---------------------|----------------------------------|
@@ -2204,7 +2184,7 @@ Use `visible_when:` bound to a network state field.
 
 ---
 
-### 16a.32 PullToRefresh
+### 16a.31 PullToRefresh
 
 | Directive           | Meaning                                                                   |
 |---------------------|---------------------------------------------------------------------------|
@@ -2227,28 +2207,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.33 PullRefreshIndicator (removed — use custom_indicator: on PullToRefresh)
-
-`PullRefreshIndicator` is not a distinct component type. To override the platform default pull indicator, use
-`custom_indicator:` on the `PullToRefresh` wrapper and point it to any component — typically a `Lottie` or
-`Progress { style: circular, indeterminate: true }`.
-
-```ssdl
-#orders_refresh: PullToRefresh {
-  on refresh: refreshOrders()
-  refreshing: @refreshing
-  custom_indicator: #pull_lottie   // optional — omit for platform default
-}
-
-#pull_lottie: Lottie {
-  source: "animations/pull_refresh.json"
-  progress: $pull_progress
-}
-```
-
----
-
-### 16a.34 NavBar
+### 16a.32 NavBar
 
 | Directive      | Meaning                                                       |
 |----------------|---------------------------------------------------------------|
@@ -2273,7 +2232,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.35 TabBar and TabItem
+### 16a.33 TabBar and TabItem
 
 **TabBar:**
 
@@ -2319,7 +2278,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.36 Drawer and DrawerItem
+### 16a.34 Drawer and DrawerItem
 
 **Drawer:**
 
@@ -2364,7 +2323,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.37 StickyHeader
+### 16a.35 StickyHeader
 
 | Directive            | Meaning                                                      |
 |----------------------|--------------------------------------------------------------|
@@ -2386,11 +2345,11 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.38 Carousel
+### 16a.36 Carousel
 
 | Directive          | Meaning                                                                                                                                            |
 |--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `fill:`            | Boolean — when `true`, items fill the full viewport (full-bleed "pager" mode); when `false` (default), items show a partial peek of adjacent items |
+| `fill:`            | Boolean — when `true`, items fill the full viewport (full-bleed page mode); when `false` (default), items show a partial peek of adjacent items    |
 | `data:`            | Bound collection                                                                                                                                   |
 | `item:`            | Item template component ID                                                                                                                         |
 | `peek:`            | Spacing token — how much of adjacent item is visible; ignored when `fill: true`                                                                    |
@@ -2419,30 +2378,7 @@ Wrap around a `Scroll` or `List`.
 
 ---
 
-### 16a.39 Pager (removed — use Carousel { fill: true })
-
-`Pager` is merged into `Carousel`. Use `fill: true` for full-bleed viewport pages, `data:` or `children:` for the pages,
-and `on slide_change:` for the page-change event.
-
-```ssdl
-// Before (removed)
-// #onboarding_pager: Pager { pages: [...], on page_change: ... }
-
-// After
-#onboarding_pager: Carousel {
-  in: #screen
-  size: w:screen h:fill
-  fill: true
-  data: $onboarding_pages
-  item: #onboarding_page
-  current: $onboarding_step
-  on slide_change: set $onboarding_step := $index
-}
-```
-
----
-
-### 16a.40 SectionList
+### 16a.37 SectionList
 
 | Directive         | Meaning                                                                 |
 |-------------------|-------------------------------------------------------------------------|
@@ -2465,7 +2401,7 @@ and `on slide_change:` for the page-change event.
 
 ---
 
-### 16a.41 Table
+### 16a.38 Table
 
 | Directive         | Meaning                                                                                             |
 |-------------------|-----------------------------------------------------------------------------------------------------|
@@ -2497,7 +2433,7 @@ and `on slide_change:` for the page-change event.
 
 ---
 
-### 16a.42 SearchBar
+### 16a.39 SearchBar
 
 | Directive      | Meaning                              |
 |----------------|--------------------------------------|
@@ -2523,7 +2459,7 @@ and `on slide_change:` for the page-change event.
 
 ---
 
-### 16a.43 Accordion
+### 16a.40 Accordion
 
 | Directive         | Meaning                                                           |
 |-------------------|-------------------------------------------------------------------|
@@ -2545,7 +2481,7 @@ and `on slide_change:` for the page-change event.
 
 ---
 
-### 16a.44 Collapsible
+### 16a.41 Collapsible
 
 | Directive    | Meaning                                       |
 |--------------|-----------------------------------------------|
@@ -2569,28 +2505,7 @@ The collapsible region itself needs no additional role.
 
 ---
 
-### 16a.45 WrapStack (removed — use HStack { wrap: true })
-
-`WrapStack` is not a distinct component type. Use `HStack` with `wrap: true`. The `row_gap:` directive is added to
-`HStack` as a spacing companion to `gap:`.
-
-```ssdl
-// Before (removed)
-// #filter_chips: WrapStack { gap: xs, row_gap: xs, children: ... }
-
-// After
-#filter_chips: HStack {
-  in: #filter_bar
-  wrap: true
-  gap: xs
-  row_gap: xs
-  children: $active_filters map #filter_chip
-}
-```
-
----
-
-### 16a.46 FormGroup
+### 16a.42 FormGroup
 
 | Directive      | Meaning                                                   |
 |----------------|-----------------------------------------------------------|
@@ -2610,34 +2525,7 @@ The collapsible region itself needs no additional role.
 
 ---
 
-### 16a.47 Masonry (removed — use Grid { masonry: true })
-
-`Masonry` is not a distinct component type. Use `Grid` with `masonry: true` for irregular item heights. All `Grid`
-directives apply; `masonry: true` disables uniform row height.
-
-**A11Y note:** items are read in DOM/source order by VoiceOver/TalkBack regardless of visual column position — this is
-expected.
-
-```ssdl
-// Before (removed)
-// #photo_masonry: Masonry { data: $photos, columns: 2, ... }
-
-// After
-#photo_masonry: Grid {
-  in: #content
-  data: $photos
-  item: #photo_card
-  masonry: true
-  columns: 2
-  gap: xs
-  empty_state: #photos_empty
-  a11y: "Photo grid, {$photos.count} photos"
-}
-```
-
----
-
-### 16a.48 InlineLoader
+### 16a.43 InlineLoader
 
 Reuses standard directives only (`size:`, `visible_when:`). No component-specific directives.
 
@@ -2656,9 +2544,9 @@ sole indication that something is happening (no loading text or state change on 
 
 ---
 
-### 16a.49 Modal
+### 16a.44 Modal
 
-Arbitrary-content modal container. Unlike `Dialog` (the fixed title + message + confirm/cancel shape, §16a.27), `Modal`
+Arbitrary-content modal container. Unlike `Dialog` (the fixed title + message + confirm/cancel shape, §16a.26), `Modal`
 imposes no internal structure — you supply `children:`. Reach for `Modal` when the overlay hosts a form, a custom
 layout, or anything richer than a confirm prompt; reach for `Dialog` for the standard title/message/actions pattern.
 
@@ -2678,6 +2566,33 @@ dismiss.
   visible_when: $filters_open
   on dismiss: set $filters_open := false
   children: [#filters_form, #apply_btn]
+}
+```
+
+---
+
+### 16a.45 Banner
+
+Inline or global message strip. `type:` sets the severity, which drives the color, the default leading icon, and the
+accessibility announcement priority.
+
+| Directive      | Meaning                                                                                  |
+|----------------|------------------------------------------------------------------------------------------|
+| `type:`        | `info` (default) / `success` / `warning` / `error` — severity styling and a11y priority  |
+| `dismissible:` | Boolean — show a close affordance (default `false`)                                       |
+| `icon:`        | Override the default leading icon for the `type:`                                         |
+| `on dismiss:`  | Action fired when the user closes the banner                                              |
+
+**A11Y default role:** `status` (announced politely). `type: error` and `type: warning` raise it to `alert` (announced
+assertively). Add `a11y: announce_when_visible` on banners shown conditionally so they are announced when they appear.
+
+```ssdl
+#error_banner: Banner {
+  in: #form
+  type: error
+  text: $error_msg
+  visible_when: $error_msg.exists
+  a11y: announce_when_visible
 }
 ```
 
@@ -2756,7 +2671,7 @@ RichTextDirective     := ("toolbar:" "[" RichTextTool+ "]") | ("max_length:" Int
 CarouselDirective     := ("fill:" Boolean) | ("peek:" SpacingToken) | ("snap:" Boolean)
                        | ("indicator:" Boolean) | ("pagination:" PaginationStrategy)
                        | ("orientation:" Orientation) | ("current:" FieldId)
-                       // fill:true = full-bleed pager mode; fill:false (default) = peek carousel mode
+                       // fill:true = full-bleed page mode; fill:false (default) = peek carousel mode
 SectionListDirective  := ("sections:" FieldId) | ("section_header:" ComponentId) | ("sticky_headers:" Boolean) | ("empty_state:" ComponentId)
 TableDirective        := ("columns:" "[" ColumnDef+ "]") | ("sortable:" Boolean) | ("frozen_columns:" Integer) | ("on row_tap:" Effect)
 AccordionDirective    := ("items:" FieldId) | ("allow_multiple:" Boolean)
@@ -2776,7 +2691,7 @@ DialogDirective       := ("title:" String) | ("message:" String) | ("confirm_lab
                        | ("cancel_label:" String) | ("destructive:" Boolean)
                        // cancel_label omitted = single-button dialog
 ModalDirective        := ("dismissible:" Boolean) | ("dismiss_on_outside_tap:" Boolean)
-                       // Modal holds arbitrary content via children:; see §16a.49 — use Dialog for title+message+actions
+                       // Modal holds arbitrary content via children:; see §16a.44 — use Dialog for title+message+actions
 EmptyStateDirective   := ("type:" EmptyStateType) | ("illustration:" String) | ("title:" String)
                        | ("description:" String) | ("cta:" CTAExpr)  // see §48.28 for type values
 ProgressDirective     := ("style:" ProgressStyle) | ("value:" NumberOrField) | ("max:" Number) | ("indeterminate:" Boolean)
@@ -2784,13 +2699,14 @@ StepIndicatorDirective:= ("steps:" Integer) | ("current:" NumberOrField) | ("sty
 LoadingOverlayDir     := ("message:" String) | ("cancelable:" Boolean)
 PullToRefreshDir      := ("refreshing:" FieldIdOrState) | ("custom_indicator:" ComponentId)
 NetworkBannerDir      := ("offline_msg:" String) | ("reconnecting_msg:" String)
+BannerDirective       := ("type:" BannerType) | ("dismissible:" Boolean) | ("icon:" String)
+                       // BannerType = info (default) | success | warning | error
 StickyHeaderDir       := ("collapse_height:" SizeToken) | ("expanded_content:" ComponentId)
                        | ("collapsed_content:" ComponentId) | ("parallax:" Boolean)
-MasonryDirective      := ("columns:" Integer)
 HStackDirective       := ("wrap:" Boolean) | ("row_gap:" SpacingToken)
-                       // wrap:true enables line-wrapping (replaces WrapStack)
-GridDirective         := ("masonry:" Boolean)
-                       // masonry:true enables variable item heights (replaces Masonry type)
+                       // wrap:true enables line-wrapping
+GridDirective         := ("masonry:" Boolean) | ("columns:" Integer)
+                       // masonry:true enables variable item heights
 FormGroupDirective    := ("required:" Boolean)
 PriceTagDirective     := ("amount:" NumberOrField) | ("currency:" String) | ("original:" NumberOrField)
 StatDirective         := ("subtitle:" String) | ("trend:" TrendDir) | ("trend_value:" StringOrField)
@@ -3400,7 +3316,7 @@ For collection binding:
 
 ```ssdl
 #orders_list: List {
-  data: $orders
+  data: $orders as $order
   item: #order_row
   pagination: endless_scroll
   empty_state: #orders_empty
@@ -3408,7 +3324,6 @@ For collection binding:
 }
 
 #order_row: ListItem {
-  repeat_for: $orders as $order
   title: $order.title
   subtitle: $order.status
   on swipe_left: showDeleteAction($order)
@@ -3416,17 +3331,21 @@ For collection binding:
 }
 ```
 
+The `as $order` clause on `data:` names the per-element binding, which the `item:` template (`#order_row`) references as
+`$order`. A container declares iteration with `data:`/`item:` **or** an explicit `children:` list — never both.
+`data:`/`item:` is not limited to scrollable collections; use it on layout stacks (`HStack`, `VStack`) too — e.g. a
+wrapping row of filter chips.
+
 ### 26.1 Collection directives
 
 | Directive        | Meaning                                  |
 |------------------|------------------------------------------|
-| `data:`          | Bound collection field                   |
+| `data:`          | Bound collection + element binding       |
 | `item:`          | Item template component ID               |
 | `pagination:`    | Pagination strategy                      |
 | `empty_state:`   | Component shown when collection is empty |
 | `selection:`     | Item selection mode                      |
 | `on scroll.end:` | Action when user scrolls near the end    |
-| `repeat_for:`    | Iteration binding (on item component)    |
 
 Pagination strategies:
 
@@ -4675,7 +4594,7 @@ Compact mode is useful for early drafts.
 
 ```ssdl
 SCREEN Login v1
-ROUTE /login auth:none
+ROUTE /login access:public
 
 MODEL
   $email!: Email := ""
@@ -5540,7 +5459,7 @@ SCOPE {
 ROUTE {
   path: /<route>
   type: screen
-  auth: required|not_required|optional
+  access: public|authenticated|optional
   params: { }
 }
 

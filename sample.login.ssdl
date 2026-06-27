@@ -47,7 +47,7 @@ SCOPE {
 ROUTE {
   path: /login
   type: screen
-  auth: not_required
+  access: public
   params: {
     entry_source?: String
     redirect_to?: String
