@@ -18,10 +18,10 @@ and "Agent obligations" (§5).
 | `s/NN-*.md` | One screen-section's rules (e.g. ROUTE, ANIMATION) | Source | Yes, on demand |
 | `c/<category>/*.md` | One component's directive table + A11Y + example | Source | Yes, on demand |
 | `s/51-vocabulary.md` | The value-enum catalog (keyboard, autocomplete, zoom…) | Source | Yes, on demand |
-| `bundler.manifest.yml` | Assembly order + all metadata | Source | **No — bundler only** |
+| `scripts/bundler.manifest.yml` | Assembly order + all metadata | Source | **No — bundler only** |
 | `ssdl.spec.md` | The full, numbered, linear spec | **Generated** | Optional (full read only) |
 
-Source files are **pure content** — no front-matter. All metadata lives in `bundler.manifest.yml`; the agent-facing
+Source files are **pure content** — no front-matter. All metadata lives in `scripts/bundler.manifest.yml`; the agent-facing
 projection of it is `agent.manifest.yml`.
 
 ---
@@ -99,7 +99,7 @@ addition to `ui_core`, never a replacement for it.
 - **MUST** defer to the **loaded file content** for authority rules (e.g. `STATE_TRANSITIONS` is canonical over
   `STATES`; the ACTIONS / BUSINESS_RULES / FLOW authority chain). The spec governs; the agent does not.
 - **MUST NOT** hand-edit generated artifacts (`agent.manifest.yml`, `ssdl.spec.md`, any generated bundle). Changes go
-  to the source files + `bundler.manifest.yml`, followed by a re-bundle.
+  to the source files + `scripts/bundler.manifest.yml`, followed by a re-bundle.
 - **SHOULD** load only the slices a task needs, and prefer section/component files over `ssdl.spec.md` for targeted
   lookups. **SHOULD NOT** load the entire spec when slices suffice.
 - **MAY** read `ssdl.spec.md` when a full linear read is the actual goal.
@@ -114,7 +114,7 @@ The bundler MUST produce artifacts such that:
   the manifest (no orphans).
 - `components ∪ standard` equals the §18 component taxonomy (the full component set).
 - Every `§N` and every name-anchor cross-reference resolves.
-- `agent.manifest.yml` is a faithful projection of `bundler.manifest.yml` and the files on disk.
+- `agent.manifest.yml` is a faithful projection of `scripts/bundler.manifest.yml` and the files on disk.
 
 If any guarantee fails, the **build fails** and no stale or partial `agent.manifest.yml` / `ssdl.spec.md` is published.
 

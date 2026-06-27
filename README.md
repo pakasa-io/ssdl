@@ -108,10 +108,10 @@ Fragments carry their own `FRAGMENT` header and changelog, support `export` to c
 
 | Path | What it is |
 |------|------------|
-| [`ssdl.spec.md`](ssdl.spec.md) | The complete SSDL v1.5.0 language specification — 58 sections covering grammar, component taxonomy, every directive, linting rules, and adoption workflow. **Generated** from `spec/` by `bundle.py`. |
+| [`ssdl.spec.md`](ssdl.spec.md) | The complete SSDL v1.5.0 language specification — 58 sections covering grammar, component taxonomy, every directive, linting rules, and adoption workflow. **Generated** from `spec/` by `scripts/bundle.py`. |
 | [`spec/`](spec/) | The specification **source** — one file per section, one per component. Edit here, then re-bundle. |
-| [`bundle.py`](bundle.py) | The bundler — assembles `spec/` into `ssdl.spec.md` and `agent.manifest.yml`; `python3 bundle.py --check` verifies the round-trip. |
-| [`bundler.manifest.yml`](bundler.manifest.yml) | Bundler assembly order and component metadata (source; bundler-only). |
+| [`scripts/bundle.py`](scripts/bundle.py) | The bundler — assembles `spec/` into `ssdl.spec.md` and `agent.manifest.yml`; `python3 scripts/bundle.py --check` verifies the round-trip. Runs from any directory. |
+| [`scripts/bundler.manifest.yml`](scripts/bundler.manifest.yml) | Bundler assembly order and component metadata (source; bundler-only). |
 | [`agent.manifest.yml`](agent.manifest.yml) | The agent index — *where to find what*, for progressive loading. **Generated.** |
 | [`AGENT_PROTOCOL.md`](AGENT_PROTOCOL.md) | The contract for AI agents and tooling that consume the split spec. |
 | [`assets/sample.login.ssdl`](assets/sample.login.ssdl) | A reference login screen in full mode — the canonical worked example (§50). |

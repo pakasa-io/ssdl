@@ -7,15 +7,21 @@ Reads bundler.manifest.yml + spec/ and:
   - generates agent.manifest.yml (the agent index),
   - validates the AGENT_PROTOCOL §6 guarantees, incl. §18 taxonomy <-> component-file consistency.
 
-Usage: python3 bundle.py            (writes ssdl.spec.md + agent.manifest.yml)
-       python3 bundle.py --check    (writes to temp, diffs, exits non-zero on drift)
+Usage: python3 scripts/bundle.py            (writes ssdl.spec.md + agent.manifest.yml)
+       python3 scripts/bundle.py --check    (builds in memory, diffs the on-disk artifacts, exits non-zero on drift)
+
+Run from anywhere: paths resolve against the repo root (this script's parent directory).
 """
-import re, os, glob, sys, tempfile
+import re, os, glob, sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))   # scripts/
+ROOT = os.path.dirname(HERE)                         # repo root
+os.chdir(ROOT)                                       # resolve spec/ + output paths against the repo root
 
 SPEC = "spec"
 
 # ---------- manifest ----------
-man = open("bundler.manifest.yml", encoding="utf-8").read()
+man = open(os.path.join(HERE, "bundler.manifest.yml"), encoding="utf-8").read()
 STUB = re.search(r'^stub: (\S+)', man, re.M).group(1)
 ORDER = re.findall(r'^  - (spec/\S+)$', man, re.M)
 COMP = {}  # file -> (order, title)
