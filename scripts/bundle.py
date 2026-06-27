@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Bundle the split sources into ssdl.spec.md + agent.manifest.yml.
+"""Bundle the split sources into ssdl.spec.md + agents/agent.manifest.yml.
 
 Reads bundler.manifest.yml + spec/ and:
   - concatenates sections (verbatim) and re-heads each component (`### 19.<order> <title>`),
   - generates the grouped Table of Contents,
-  - generates agent.manifest.yml (the agent index),
+  - generates agents/agent.manifest.yml (the agent index),
   - validates the AGENT_PROTOCOL §6 guarantees, incl. §18 taxonomy <-> component-file consistency.
 
-Usage: python3 scripts/bundle.py            (writes ssdl.spec.md + agent.manifest.yml)
+Usage: python3 scripts/bundle.py            (writes ssdl.spec.md + agents/agent.manifest.yml)
        python3 scripts/bundle.py --check    (builds in memory, diffs the on-disk artifacts, exits non-zero on drift)
 
 Run from anywhere: paths resolve against the repo root (this script's parent directory).
@@ -19,6 +19,7 @@ ROOT = os.path.dirname(HERE)                         # repo root
 os.chdir(ROOT)                                       # resolve spec/ + output paths against the repo root
 
 SPEC = "spec"
+OUT_SPEC, OUT_AGENT = "ssdl.spec.md", "agents/agent.manifest.yml"
 
 # ---------- manifest ----------
 man = open(os.path.join(HERE, "bundler.manifest.yml"), encoding="utf-8").read()
@@ -138,10 +139,10 @@ def build_agent_manifest():
 if __name__ == "__main__":
     spec, agent = build_spec(), build_agent_manifest()
     if "--check" in sys.argv:
-        ok = spec == open("ssdl.spec.md", encoding="utf-8").read() and \
-             agent == open("agent.manifest.yml", encoding="utf-8").read()
+        ok = spec == open(OUT_SPEC, encoding="utf-8").read() and \
+             agent == open(OUT_AGENT, encoding="utf-8").read()
         print("round-trip:", "OK ✅" if ok else "DRIFT ❌")
         sys.exit(0 if ok else 1)
-    open("ssdl.spec.md", "w", encoding="utf-8").write(spec)
-    open("agent.manifest.yml", "w", encoding="utf-8").write(agent)
-    print("wrote ssdl.spec.md + agent.manifest.yml")
+    open(OUT_SPEC, "w", encoding="utf-8").write(spec)
+    open(OUT_AGENT, "w", encoding="utf-8").write(agent)
+    print(f"wrote {OUT_SPEC} + {OUT_AGENT}")

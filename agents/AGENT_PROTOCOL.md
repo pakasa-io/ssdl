@@ -14,7 +14,7 @@ and "Agent obligations" (§5).
 
 | Artifact | Role | Source / Generated | Agent reads? |
 |----------|------|--------------------|--------------|
-| `agent.manifest.yml` | The index — *where to find what* | **Generated** | **Yes — entry point** |
+| `agents/agent.manifest.yml` | The index — *where to find what* | **Generated** | **Yes — entry point** |
 | `s/NN-*.md` | One screen-section's rules (e.g. ROUTE, ANIMATION) | Source | Yes, on demand |
 | `c/<category>/*.md` | One component's directive table + A11Y + example | Source | Yes, on demand |
 | `s/51-vocabulary.md` | The value-enum catalog (keyboard, autocomplete, zoom…) | Source | Yes, on demand |
@@ -22,7 +22,7 @@ and "Agent obligations" (§5).
 | `ssdl.spec.md` | The full, numbered, linear spec | **Generated** | Optional (full read only) |
 
 Source files are **pure content** — no front-matter. All metadata lives in `scripts/bundler.manifest.yml`; the agent-facing
-projection of it is `agent.manifest.yml`.
+projection of it is `agents/agent.manifest.yml`.
 
 ---
 
@@ -53,6 +53,9 @@ load(p) = read p            if p is a string
 Anywhere a pointer appears (`bundles.*`, `sections.*`, `enums`, `components.*.f`) it MAY be a string or an array, and
 MUST be resolved with `load()`.
 
+Every path is relative to the **repository root** (e.g. `spec/03-screen-sections/09-route.md`) — not to this document
+or to the `agents/` folder the index lives in — so pointers resolve identically wherever the index is read from.
+
 ---
 
 ## 4. Load protocol
@@ -68,7 +71,7 @@ section   → load(sections[name])
 
 In full, an agent performing a spec-derived task MUST follow this procedure:
 
-1. **Read `agent.manifest.yml` first.** No spec-derived decision is made before this.
+1. **Read `agents/agent.manifest.yml` first.** No spec-derived decision is made before this.
 2. **If the task touches UI, layout, or any component:** `load(bundles.ui_core)` **before** interpreting any layout
    directive, standard directive, or component. `ui_core` is the mandatory base for all UI work.
 3. **For each component `C` the screen uses:**
@@ -133,7 +136,7 @@ is itself versioned by this document.
 *Task: author a screen with a `Carousel`, a `Scanner`, and a `VStack` form.*
 
 ```
-read agent.manifest.yml
+read agents/agent.manifest.yml
 load(bundles.ui_core)                         # 12 layout/directive section files — the base
 Carousel → load(c/layout/carousel.md)          # fill/peek on top of ui_core
 Scanner  → load(c/input/scanner.md)            # + needs:[permissions] → load(sections.permissions)
