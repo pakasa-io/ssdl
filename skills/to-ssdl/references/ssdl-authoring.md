@@ -3,21 +3,29 @@
 The SSDL specification is the language authority. This file covers how to consume it, where files go, and how a
 principal mobile UI/UX engineer fills each section. It does **not** restate the grammar — load that from the spec.
 
-## Ground in the spec (the load order)
+## Lazy loading by trigger (the load order)
 
-Follow `agents/AGENT_PROTOCOL.md`. In practice:
+Follow `agents/AGENT_PROTOCOL.md`, *reactively*: read the index once, then load each spec file only when a
+**trigger** — an SSDL token about to be emitted — fires. Read **`agents/agent.manifest.yml` first** (the index;
+every pointer in it is relative to the **repo root**) — but read **no** spec file until a trigger calls for it.
 
-1. Read **`agents/agent.manifest.yml`** first — the index. Every pointer in it is relative to the **repo root**.
-2. For any UI work, `load(bundles.ui_core)` (the 12 layout/directive section files) **before** interpreting a
-   component or layout directive — it is the mandatory base.
-3. Per screen, load only what is needed: `sections.<keyword>` for each section being authored (e.g.
-   `sections.route`, `sections.model`, `sections.validation`), `components.<Name>.f` for each component used (and
-   resolve its `with:` / `needs:`), and `enums` when a value vocabulary is referenced.
-4. `components ∪ standard` is the complete, authoritative component set. **Use only those.** A `standard` component
-   (no `f:`) is fully covered by `ui_core` — its absence of a file is not missing documentation.
-5. Defer to loaded file content for authority rules; never author from memory of the language.
+| When about to… (trigger) | Lazily `load()` | Manifest key |
+|--------------------------|-----------------|--------------|
+| start any UI/layout/component work (first time only) | the `ui_core` base (12 directive/layout files) — **once per engagement** | `bundles.ui_core` |
+| place a component `C` in a screen | `C`'s file, then resolve its `with:` (children) and `needs:` (sections/enums) | `components.C.f` (+ `.with` / `.needs`) |
+| use a `standard` component (no file) | nothing — `ui_core` already covers it | `standard` |
+| author a screen section (route, model, validation, api, a11y, …) | that section's file | `sections.<keyword>` |
+| write a value-vocabulary directive (`keyboard:`, `autocomplete:`, a `style:` token, an animation token, …) | the enum catalog | `enums` |
+| hit a `§N` / name-anchor inside a loaded file | the referenced file | resolve via the manifest |
+| see a component **not** in `components ∪ standard` | nothing — it is **invalid**; reject it | — |
 
-For a full linear read when genuinely needed, `ssdl.spec.md` is the generated single file — but prefer slices.
+- **Closure** — repeat until no new file is pulled in by a `with:` / `needs:` / cross-reference.
+- **Release** — after a screen is written, drop its component/section bodies from context; keep only the small
+  `ui_core` base + the journey map. Lazy *unload* matters as much as lazy load.
+- `components ∪ standard` is the complete, authoritative component set — **use only those**; a `standard` component
+  (no `f:`) is fully specified by `ui_core`, not under-documented.
+- Defer to **loaded file content** for authority rules; never author from memory of the language. Prefer slices to
+  the monolithic `ssdl.spec.md` (use that only for a deliberate full linear read).
 
 ## File naming and placement
 

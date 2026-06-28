@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
 description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (via agents/agent.manifest.yml) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.2.0
+version: 0.3.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -43,7 +43,7 @@ Before authoring anything:
    Use only those. Use only directives and value enums defined in the loaded section/`enums` files. The spec
    governs the language; this skill governs the journey/translation workflow.
 
-Read `references/ssdl-authoring.md` for grounding mechanics, file naming, mandatory sections, and per-section UX
+Read `references/ssdl-authoring.md` for lazy-loading-by-trigger mechanics, file naming, mandatory sections, and per-section UX
 guidance. Read `references/navigation-stitching.md` for **what counts as one journey** (definition, sizing, examples) and
 the core discipline of this skill — turning an operation into a closed, consistent screen graph.
 
@@ -82,7 +82,9 @@ operation is, who performs it, and what "done" looks like. Produce a short list 
 scope before going further.
 
 #### Phase 2 — Ground in the spec and any existing screens
-Read `agents/agent.manifest.yml` and skim `agents/AGENT_PROTOCOL.md`. If `.ssdl` files already exist in the target
+Read **only `agents/agent.manifest.yml`** up front (the index) and skim `agents/AGENT_PROTOCOL.md` — do **not**
+bulk-load spec files; each `sections.*` / `components.*` / `enums` file loads later, lazily, when a trigger fires
+(Phase 5). If `.ssdl` files already exist in the target
 project, explore them (launch read-only explorer agents for larger codebases) to learn naming, fragments already in
 use, navigation conventions, and the design-system fragment. Reuse before inventing. Report what exists.
 
@@ -110,7 +112,9 @@ Design the **screen graph** before writing any file (this is the heart of the sk
 #### Phase 5 — Build the journey, one screen at a time
 Build **screen by screen** against the agreed map — never the whole journey in one pass. For each screen, in
 journey order:
-1. **Load** the section and component slices that screen needs (per the manifest).
+1. **Load by trigger.** From the screen's entry in the map, derive its triggers — the components it places and the
+   sections it needs — then `load()` exactly those slices and resolve their `with:` / `needs:` / `§N` to closure
+   (the trigger table is in `references/ssdl-authoring.md`). Load nothing else.
 2. **Author** its full SSDL against the map: the mandatory sections (`SCREEN`, `ROUTE`, `MODEL`, `UI`, `STATES`,
    `FLOW`, `ACCEPTANCE`) plus those the operation requires (`DATA`, `API`, `BUSINESS_RULES`, `VALIDATION`,
    `LIFECYCLE`, `STATE_TRANSITIONS`, `NAVIGATION`, `ANALYTICS`, `A11Y`, `ERRORS`). Follow the recommended section
