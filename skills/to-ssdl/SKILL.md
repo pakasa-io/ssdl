@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
 description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (via agents/agent.manifest.yml) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.1.0
+version: 0.2.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -47,29 +47,55 @@ Read `references/ssdl-authoring.md` for grounding mechanics, file naming, mandat
 guidance. Read `references/navigation-stitching.md` for **what counts as one journey** (definition, sizing, examples) and
 the core discipline of this skill — turning an operation into a closed, consistent screen graph.
 
-## Workflow — one journey at a time
+## Workflow — discover once, plan per journey, build per screen
 
-Track every journey and phase as tasks. Work a single journey through to review before starting the next, then
-checkpoint (summarize, surface blockers) rather than running ahead.
+The work is a **three-level nested loop**, not a one-shot pipeline: run **Phases 1–3 once**, then **repeat Phases
+4–7 per journey**, and **within Phase 5 repeat per screen**. Only a candidate *list* of journeys is produced
+upfront — never the full planset of maps. Planning, closure-review, and checkpoints are journey-scoped; generation
+and commits are screen-scoped. The **journey map** (Phase 4) is the small, durable anchor that carries cross-screen
+context — author each screen against the map plus the files already on disk, not recall. Track every journey and
+screen as tasks.
 
-### Phase 1 — Discovery
+```
+ONCE  (Phases 1–3, per engagement)
+  discover candidate-journey LIST + scope · ground in spec · clarify
+     │
+     ▼
+PER JOURNEY  (Phases 4–7, outer loop)  ── repeat for each journey in the list
+  Phase 4  plan THIS journey's map  ───────────────┐  (small, durable anchor)
+  Phase 5  build, PER SCREEN (inner loop):         │
+             for screen in map (journey order):    │
+               load slices → author → self-check ──┘  (every edge checked against the map)
+               → write file → release from context → commit screen
+  Phase 6  review: re-read the written files from disk → verify closure
+  Phase 7  checkpoint: summarize, surface blockers → next journey
+```
+
+**Context budget:** hold only the current journey's map + the current screen's spec slices; everything else lives
+on disk. Reload slices per screen; never hold multiple screens' bodies — or all journeys' maps — at once.
+
+### Once (per engagement)
+
+#### Phase 1 — Discovery
 Restate the business operation(s) to be modelled and the journeys they imply. If the input is thin, ask what the
 operation is, who performs it, and what "done" looks like. Produce a short list of candidate journeys and confirm
 scope before going further.
 
-### Phase 2 — Ground in the spec and any existing screens
+#### Phase 2 — Ground in the spec and any existing screens
 Read `agents/agent.manifest.yml` and skim `agents/AGENT_PROTOCOL.md`. If `.ssdl` files already exist in the target
 project, explore them (launch read-only explorer agents for larger codebases) to learn naming, fragments already in
 use, navigation conventions, and the design-system fragment. Reuse before inventing. Report what exists.
 
-### Phase 3 — Clarifying questions (do not skip)
+#### Phase 3 — Clarifying questions (do not skip)
 Resolve ambiguities **before** designing the graph. Typical gaps: the actors and their `access:` level
 (public/authenticated/optional); journey entry points (deep link, tab, push, hand-off from another flow); exit and
 back behavior; auth/session boundaries; target platforms; required permissions; failure/empty/offline handling;
 and which screens are net-new vs variants of existing ones. Present questions as a tight list and wait for answers.
 If the user defers the decision, state the recommendation and proceed.
 
-### Phase 4 — Journey & navigation architecture
+### Per journey (repeat Phases 4–7)
+
+#### Phase 4 — Journey & navigation architecture
 Design the **screen graph** before writing any file (this is the heart of the skill — see
 `references/navigation-stitching.md`):
 - Enumerate screens as nodes; draw edges as `ENTRY`/`EXIT`/`NAVIGATION` transitions.
@@ -78,28 +104,40 @@ Design the **screen graph** before writing any file (this is the heart of the sk
 - Map each screen's lifecycle and state machine at a high level.
 - Verify the graph is **closed** (every `EXIT` lands on a real screen; every screen is reachable) and present it as
   a journey map. Offer one or two structural options when there's a real trade-off, with a recommendation. Get
-  agreement on the map before generating.
+  agreement on the map before generating. If the map exceeds ~7 screens, split it into sub-journeys (see
+  `references/navigation-stitching.md`).
 
-### Phase 5 — Generate the stitched screens
-Author the `.ssdl` files for the agreed journey, plus any new fragments. For each screen, load the section and
-component files it needs (per the manifest) and write all mandatory sections (`SCREEN`, `ROUTE`, `MODEL`, `UI`,
-`STATES`, `FLOW`, `ACCEPTANCE`) plus those the operation requires (`DATA`, `API`, `BUSINESS_RULES`, `VALIDATION`,
-`LIFECYCLE`, `STATE_TRANSITIONS`, `NAVIGATION`, `ANALYTICS`, `A11Y`, `ERRORS`). Stitch navigation as designed.
-Follow the recommended section order; mirror the conventions in `assets/template.minimal.ssdl` and
-`assets/sample.login.ssdl`.
+#### Phase 5 — Build the journey, one screen at a time
+Build **screen by screen** against the agreed map — never the whole journey in one pass. For each screen, in
+journey order:
+1. **Load** the section and component slices that screen needs (per the manifest).
+2. **Author** its full SSDL against the map: the mandatory sections (`SCREEN`, `ROUTE`, `MODEL`, `UI`, `STATES`,
+   `FLOW`, `ACCEPTANCE`) plus those the operation requires (`DATA`, `API`, `BUSINESS_RULES`, `VALIDATION`,
+   `LIFECYCLE`, `STATE_TRANSITIONS`, `NAVIGATION`, `ANALYTICS`, `A11Y`, `ERRORS`). Follow the recommended section
+   order; mirror `assets/template.minimal.ssdl` and `assets/sample.login.ssdl`.
+3. **Self-check** the screen in isolation: `#id`s internally consistent; its `ENTRY`/`EXIT`/`NAVIGATION` edges
+   match the map; per-screen lint.
+4. **Write** the file and **release its body from working context** — rely on the map + disk thereafter.
+5. **Commit** the screen, then move to the next. (Per-screen is the recommended cadence; commit only at the user's
+   direction.)
 
-### Phase 6 — Review: navigation closure + lint + completeness
-Review the journey, not just each file:
-- **Navigation closure** — reconcile `EXIT` ↔ `NAVIGATION` (LINT-030), confirm every destination exists, back and
-  deep-link behavior is defined, and the journey is traceable end-to-end.
+Author any new fragment (navigation chrome, design system) when first needed and import it. Keep only the journey
+map + the current screen's slices in working context.
+
+#### Phase 6 — Review: navigation closure + lint + completeness
+Review the journey as a whole, and **re-read the written files from disk** — do not rely on recall of what was
+generated:
+- **Navigation closure** — reconcile `EXIT` ↔ `NAVIGATION` (LINT-030), confirm every destination exists (in this
+  journey or as a marked hand-off), back and deep-link behavior is defined, and the journey is traceable
+  end-to-end.
 - **Lint** — run the catalogue in `assets/lint-rules.md` against each file.
 - **Completeness** — run `assets/completeness-checklist.md` before any screen is called `ready`.
 - **Lifecycle fidelity** — `STATE_TRANSITIONS` present for 3+ states; every state reachable.
 Present findings by severity and fix per the user's call.
 
-### Phase 7 — Summary
-Mark tasks complete. Output the **journey map**, the files written, key design decisions, and suggested next
-journeys. Commit only when the user asks.
+#### Phase 7 — Checkpoint
+Mark tasks complete. Output the **journey map**, the files written, and key design decisions; surface blockers;
+then move to the next journey in the list (or stop). Commit only when the user asks.
 
 ## Resources
 

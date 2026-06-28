@@ -1,6 +1,6 @@
 # Plan — `to-ssdl`: make the work loop explicit (plan per journey, generate per screen)
 
-**Status:** proposed · **Date:** 2026-06-27 · **Affects:** `skills/to-ssdl/` (currently v0.1.0)
+**Status:** applied (in `skills/to-ssdl/`, v0.2.0) · **Date:** 2026-06-27 · **Affects:** `skills/to-ssdl/`
 
 ## Problem
 

@@ -28,8 +28,8 @@ A journey is the top of three nested levels — the "journeys / flows / lifecycl
 
 **Sizing & boundaries.** Typically **3–7 screens**. A journey starts at an entry trigger (tab, deep link, push,
 hand-off, cold start) and ends at a terminal success (goal achieved — usually a replace-stack forward exit) plus
-its cancel/back/error exits. One screen alone is not a journey; the whole app is many journeys. Name each journey
-after its operation ("Checkout", "Onboarding", "Dispute a charge") so the graph is legible.
+its cancel/back/error exits. One screen alone is not a journey; the whole app is many journeys; past ~7 screens, split into sub-journeys
+(below). Name each journey after its operation ("Checkout", "Onboarding", "Dispute a charge") so the graph is legible.
 
 **Sub-journeys.** A reusable detour a journey calls and returns from — e.g. "Add payment method", invoked by both
 Checkout and Profile. Author it once and reference it from each caller rather than duplicating screens.
