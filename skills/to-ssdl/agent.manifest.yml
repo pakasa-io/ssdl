@@ -1,0 +1,121 @@
+# agent.manifest.yml - generated index (see AGENT_PROTOCOL.md). Read once; load only what you need.
+version: "1.5.0"
+
+bundles:
+  ui_core:
+    - spec/03-screen-sections/17-ui-section-overview.md
+    - spec/03-screen-sections/20-ui-directive-grammar.md
+    - spec/03-screen-sections/21-nesting-and-component-relationships.md
+    - spec/03-screen-sections/22-positioning-directives.md
+    - spec/03-screen-sections/23-alignment-directives.md
+    - spec/03-screen-sections/24-sizing-directives.md
+    - spec/03-screen-sections/25-spacing-directives.md
+    - spec/03-screen-sections/26-layering-and-z-order-directives.md
+    - spec/03-screen-sections/27-behavior-directives.md
+    - spec/03-screen-sections/28-visibility-enabled-and-loading-directives.md
+    - spec/03-screen-sections/29-binding-directives.md
+    - spec/03-screen-sections/30-event-directives.md
+
+sections:
+  a11y: spec/03-screen-sections/41-a11y.md
+  acceptance: spec/03-screen-sections/43-acceptance.md
+  actions: spec/03-screen-sections/36-actions-section-with-pseudocode.md
+  actors: spec/03-screen-sections/10-actors.md
+  adoption: spec/06-adoption/55-recommended-adoption-workflow.md
+  analytics: spec/03-screen-sections/40-analytics.md
+  animation: spec/03-screen-sections/33-animation.md
+  api: spec/03-screen-sections/38-api.md
+  business-rules: spec/03-screen-sections/35-business-rules.md
+  closing-recommendation: spec/06-adoption/58-closing-recommendation.md
+  compact-mode: spec/05-patterns-reference/48-compact-mode.md
+  completeness-checklist: spec/05-patterns-reference/53-completeness-checklist.md
+  component-taxonomy: spec/03-screen-sections/18-component-taxonomy.md
+  conflict-resolution: spec/05-patterns-reference/52-ambiguity-and-conflict-resolution-rules.md
+  copy: spec/03-screen-sections/16-copy.md
+  core-concepts: spec/01-introduction/02-core-concepts.md
+  data: spec/03-screen-sections/15-data.md
+  default-layout: spec/05-patterns-reference/49-default-mobile-screen-layout-pattern.md
+  design-goals: spec/01-introduction/01-design-goals.md
+  entry-and-exit: spec/03-screen-sections/11-entry-and-exit.md
+  errors: spec/03-screen-sections/42-errors.md
+  executive-summary: spec/01-introduction/00-executive-summary.md
+  feature-flags: spec/03-screen-sections/13-feature-flags.md
+  file-level-structure: spec/02-notation/04-file-level-structure.md
+  flow: spec/03-screen-sections/37-flow.md
+  fragments: spec/04-reuse/46-fragment-file-format.md
+  full-example: spec/05-patterns-reference/50-full-example-login-screen.md
+  imports: spec/04-reuse/45-import-and-include.md
+  lifecycle: spec/03-screen-sections/32-lifecycle.md
+  linting: spec/05-patterns-reference/54-linting-rules-for-automated-review.md
+  meta: spec/03-screen-sections/07-meta.md
+  model: spec/03-screen-sections/14-model.md
+  navigation: spec/03-screen-sections/39-navigation.md
+  open-questions: spec/03-screen-sections/44-open-questions.md
+  permissions: spec/03-screen-sections/12-permissions.md
+  purpose-and-scope: spec/03-screen-sections/08-purpose-and-scope.md
+  route: spec/03-screen-sections/09-route.md
+  screen-declaration: spec/02-notation/06-screen-declaration.md
+  ssdl-shorthand-symbols: spec/02-notation/03-ssdl-shorthand-symbols.md
+  states: spec/03-screen-sections/31-state.md
+  template: spec/06-adoption/56-minimal-production-template.md
+  top-level-grammar: spec/02-notation/05-top-level-grammar.md
+  traceability: spec/06-adoption/57-spec-to-implementation-traceability.md
+  validation: spec/03-screen-sections/34-validation.md
+  variants: spec/04-reuse/47-screen-variants-and-inheritance.md
+
+enums: spec/05-patterns-reference/51-ui-directive-vocabulary-reference.md
+
+components:
+  Accordion: { f: spec/03-screen-sections/18-components/layout/accordion.md, s: "Expandable/collapsible section with a tappable header" }
+  ActionSheet: { f: spec/03-screen-sections/18-components/feedback/action-sheet.md, s: "Option list presented as an overlay — iOS action sheet / Android bottom option menu" }
+  Banner: { f: spec/03-screen-sections/18-components/feedback/banner.md, s: "Inline/global message; `type:` sets severity — see §19.45" }
+  Carousel: { f: spec/03-screen-sections/18-components/layout/carousel.md, s: "Pageable item strip — use `fill: true` for full-bleed pages; default shows partial peek of adjacent items" }
+  Collapsible: { f: spec/03-screen-sections/18-components/layout/collapsible.md, s: "Generic show/hide wrapper — no built-in header affordance; use when you supply your own trigger" }
+  ColorPicker: { f: spec/03-screen-sections/18-components/input/color-picker.md, s: "Color selection — hex, RGB, HSL, or palette" }
+  ContextMenu: { f: spec/03-screen-sections/18-components/action/context-menu.md, s: "Long-press or right-click contextual action list anchored to a component; children are `ContextMenuItem`", with: [ContextMenuItem] }
+  ContextMenuItem: { f: spec/03-screen-sections/18-components/action/context-menu.md, s: "Individual item in a `ContextMenu` — text + optional icon + optional destructive flag" }
+  Dialog: { f: spec/03-screen-sections/18-components/feedback/dialog.md, s: "Focused dialog — title + message + confirm button + optional cancel; use `destructive: true` for destructive confirm actions. Replaces `ConfirmDialog` and `DialogBox`." }
+  Drawer: { f: spec/03-screen-sections/18-components/layout/drawer.md, s: "Side navigation panel — slides in from left or right edge", with: [DrawerItem] }
+  DrawerItem: { f: spec/03-screen-sections/18-components/layout/drawer.md, s: "Individual item within a `Drawer`" }
+  EmptyState: { f: spec/03-screen-sections/18-components/feedback/empty-state.md, s: "Structured state region — illustration + title + description + CTA. Use `type:` to express intent: `empty` (no data), `error` (load failed), `offline`, `no_results`, `permission_denied`, `custom`." }
+  FormGroup: { f: spec/03-screen-sections/18-components/layout/form-group.md, s: "Logical grouping of related form fields with a shared section label, helper text, and error state" }
+  Grid: { f: spec/03-screen-sections/18-components/layout/grid.md, s: "Regular-column grid layout; use `masonry: true` for irregular (Pinterest-style) item heights" }
+  HStack: { f: spec/03-screen-sections/18-components/layout/hstack.md, s: "Horizontal stack; use `wrap: true` for wrapping chip/tag rows" }
+  InlineLoader: { f: spec/03-screen-sections/18-components/feedback/inline-loader.md, s: "Small spinner scoped to a list item, card, or button area" }
+  LoadingOverlay: { f: spec/03-screen-sections/18-components/feedback/loading-overlay.md, s: "Full-screen blocking spinner with optional message and cancel" }
+  LocationInput: { f: spec/03-screen-sections/18-components/input/location-input.md, s: "Address/place autocomplete field — Google Places style", needs: [permissions] }
+  Lottie: { f: spec/03-screen-sections/18-components/content/lottie.md, s: "JSON-driven animation — success bursts, empty state illustrations, loading delight" }
+  MapView: { f: spec/03-screen-sections/18-components/content/map-view.md, s: "Embedded interactive or static map", needs: [permissions] }
+  Modal: { f: spec/03-screen-sections/18-components/feedback/modal.md, s: "Arbitrary-content modal container (see §19.44)" }
+  NavBar: { f: spec/03-screen-sections/18-components/layout/nav-bar.md, s: "Top navigation bar — title, leading back/menu action, trailing actions" }
+  NetworkBanner: { f: spec/03-screen-sections/18-components/feedback/network-banner.md, s: "Offline/reconnecting persistent notice — always visible while condition holds" }
+  NumberBadge: { f: spec/03-screen-sections/18-components/content/number-badge.md, s: "Count bubble — notification dot with a numeric value (99+)" }
+  OTPInput: { f: spec/03-screen-sections/18-components/input/otpinput.md, s: "Fixed-length segmented code entry — SMS verify, 2FA, PIN" }
+  PhoneInput: { f: spec/03-screen-sections/18-components/input/phone-input.md, s: "Phone number field with integrated country code picker" }
+  Popover: { f: spec/03-screen-sections/18-components/feedback/popover.md, s: "Anchored floating panel — can contain interactive content; distinct from `Tooltip` which is read-only" }
+  PriceTag: { f: spec/03-screen-sections/18-components/content/price-tag.md, s: "Formatted price with optional strikethrough original price" }
+  Progress: { f: spec/03-screen-sections/18-components/feedback/progress.md, s: "Progress indicator — use `style: linear` for a track bar or `style: circular` for a ring; use `indeterminate: true` when progress is unknown" }
+  PullToRefresh: { f: spec/03-screen-sections/18-components/layout/pull-to-refresh.md, s: "Refresh trigger wrapper around a `Scroll` — declares pull gesture and refresh handler" }
+  QRCode: { f: spec/03-screen-sections/18-components/content/qrcode.md, s: "Display-only QR code generated from a value" }
+  QuantityInput: { f: spec/03-screen-sections/18-components/input/quantity-input.md, s: "Inline +/- styled quantity selector — e-commerce, cart; distinct from `Stepper` which is generic" }
+  Rating: { f: spec/03-screen-sections/18-components/content/rating.md, s: "Read-only star/heart/thumb score display" }
+  RichTextEditor: { f: spec/03-screen-sections/18-components/input/rich-text-editor.md, s: "Formatted text authoring with toolbar — bold, italic, lists, links" }
+  Scanner: { f: spec/03-screen-sections/18-components/input/scanner.md, s: "Camera QR/barcode capture trigger", needs: [permissions] }
+  SearchBar: { f: spec/03-screen-sections/18-components/layout/search-bar.md, s: "Full search UI with input, cancel button, and optional filter affordance; wraps `Search` input" }
+  SectionList: { f: spec/03-screen-sections/18-components/layout/section-list.md, s: "Grouped list with sticky section headers — contacts A–Z, grouped settings" }
+  SegmentedControl: { f: spec/03-screen-sections/18-components/input/segmented-control.md, s: "Mutually exclusive inline option switcher — sets a value, not triggers an action. Platform: `UISegmentedControl` (iOS) / `ChipGroup` or `TabLayout` (Android) / `@react-native-segmented-control/segmented-control` (RN)" }
+  SpeedDial: { f: spec/03-screen-sections/18-components/action/speed-dial.md, s: "FAB that expands into a set of sub-action buttons — Material Design pattern; children are `SpeedDialItem`", with: [SpeedDialItem] }
+  SpeedDialItem: { f: spec/03-screen-sections/18-components/action/speed-dial.md, s: "Individual action in a `SpeedDial` — icon + text + tap handler" }
+  Stat: { f: spec/03-screen-sections/18-components/content/stat.md, s: "Single KPI block — large number + label + optional trend" }
+  StatusIndicator: { f: spec/03-screen-sections/18-components/content/status-indicator.md, s: "Colored presence dot — online, offline, busy, away" }
+  StepIndicator: { f: spec/03-screen-sections/18-components/feedback/step-indicator.md, s: "Step/page progress — dots, numbers, or bars indicating position in a funnel or onboarding flow" }
+  StickyHeader: { f: spec/03-screen-sections/18-components/layout/sticky-header.md, s: "Collapsing/parallax header that pins at the top on scroll; transitions to a compact `NavBar`" }
+  TabBar: { f: spec/03-screen-sections/18-components/layout/tab-bar.md, s: "Bottom tab navigation container — holds `TabItem` components", with: [TabItem] }
+  TabItem: { f: spec/03-screen-sections/18-components/layout/tab-bar.md, s: "Individual tab within `TabBar` or `Tabs` — label, icon, badge count, selected state" }
+  Table: { f: spec/03-screen-sections/18-components/layout/table.md, s: "Columnar data grid — sortable, frozen columns, optional row selection" }
+  Tag: { f: spec/03-screen-sections/18-components/content/tag.md, s: "Inline removable label; pill/chip shape — filter tags, category labels, selected items" }
+  TagInput: { f: spec/03-screen-sections/18-components/input/tag-input.md, s: "Multi-value freeform entry with removable chips — email recipients, tags" }
+  Thumbnail: { f: spec/03-screen-sections/18-components/content/thumbnail.md, s: "Small image with lazy loading and placeholder fallback" }
+  ToggleGroup: { f: spec/03-screen-sections/18-components/input/toggle-group.md, s: "Group of toggle buttons where one or more can be active — filter bars, multi-select chip sets" }
+
+standard: [Avatar, Badge, Btn, Card, Chk, Container, DatePicker, DateTimePicker, Divider, FAB, FilePicker, Footer, Header, Icon, IconBtn, Img, Input, Link, List, ListItem, MenuBtn, Overlay, Pwd, Radio, RichTxt, SafeArea, Scroll, Search, Section, Select, Sheet, Skeleton, Slider, Snackbar, Spacer, Spinner, Stepper, Switch, Tabs, TextArea, TimePicker, Toast, Tooltip, Txt, VStack, ZStack]

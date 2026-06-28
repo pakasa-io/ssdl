@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
-description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (via agents/agent.manifest.yml) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.3.0
+description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (bundled in the skill) as the language authority. It produces SSDL design artifacts, never application code.
+version: 0.4.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -33,12 +33,12 @@ SSDL** — a navigable graph of screens, not an implementation. Do not generate 
 The language is defined by the SSDL specification, which is built for exactly this kind of progressive consumption.
 Before authoring anything:
 
-1. **Locate the spec.** Default to this repository (it contains `agents/agent.manifest.yml`). When generating in a
-   different project, point at a local checkout or the SSDL repo (`github.com/pakasa-io/ssdl`) and treat its root as
-   the spec root.
-2. **Follow `agents/AGENT_PROTOCOL.md`.** Read `agents/agent.manifest.yml` **first**; it is the index of where to
-   find what. Load `bundles.ui_core` before interpreting any UI/layout/component; load `sections.<keyword>` and
-   `components.<Name>.f` files **on demand**; resolve every pointer relative to the **repo root**.
+1. **The spec is bundled with this skill.** Alongside `SKILL.md` sit `agent.manifest.yml` (the index), `spec/`
+   (the slices), `AGENT_PROTOCOL.md`, and `assets/`. **This skill's own directory is the spec root** — every
+   manifest pointer (`spec/…`) resolves inside it. Nothing external is required.
+2. **Follow `AGENT_PROTOCOL.md`.** Read `agent.manifest.yml` **first**; it is the index of where to find what.
+   Load `bundles.ui_core` before interpreting any UI/layout/component; load `sections.<keyword>` and
+   `components.<Name>.f` files **on demand**; resolve every pointer relative to the **skill directory**.
 3. **Never invent vocabulary.** `components ∪ standard` in the manifest is the complete, authoritative component set.
    Use only those. Use only directives and value enums defined in the loaded section/`enums` files. The spec
    governs the language; this skill governs the journey/translation workflow.
@@ -82,7 +82,7 @@ operation is, who performs it, and what "done" looks like. Produce a short list 
 scope before going further.
 
 #### Phase 2 — Ground in the spec and any existing screens
-Read **only `agents/agent.manifest.yml`** up front (the index) and skim `agents/AGENT_PROTOCOL.md` — do **not**
+Read **only `agent.manifest.yml`** up front (the index) and skim `AGENT_PROTOCOL.md` — do **not**
 bulk-load spec files; each `sections.*` / `components.*` / `enums` file loads later, lazily, when a trigger fires
 (Phase 5). If `.ssdl` files already exist in the target
 project, explore them (launch read-only explorer agents for larger codebases) to learn naming, fragments already in
@@ -151,6 +151,6 @@ then move to the next journey in the list (or stop). Commit only when the user a
 - **`references/ssdl-authoring.md`** — grounding via the agent manifest, file naming, mandatory vs optional
   sections, fragment reuse, and a principal-UX pass over each SSDL section.
 - **`examples/onboarding-journey.md`** — a small worked journey showing the stitched output and its journey map.
-- **Spec assets** (at the SSDL repo root): `agents/agent.manifest.yml`, `agents/AGENT_PROTOCOL.md`,
-  `assets/lint-rules.md`, `assets/completeness-checklist.md`, `assets/template.minimal.ssdl`,
-  `assets/sample.login.ssdl`.
+- **Bundled spec** (self-contained, alongside this skill): `agent.manifest.yml` (index), `spec/` (slices),
+  `AGENT_PROTOCOL.md`, and the `assets/` files (`lint-rules.md`, `completeness-checklist.md`,
+  `template.minimal.ssdl`, `sample.login.ssdl`).

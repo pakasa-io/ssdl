@@ -1,0 +1,192 @@
+SCREEN <ScreenName> v1
+
+META {
+  feature: <FeatureName>
+  owner: <Team>
+  platform: all
+  priority: P0|P1|P2
+  status: draft
+  changelog: { v1: "Initial draft" }
+}
+
+PURPOSE {
+  <Why this screen exists.>
+}
+
+SCOPE {
+  in:
+    - <Included behavior>
+  out:
+    - <Excluded behavior>
+}
+
+ROUTE {
+  path: /<route>
+  type: screen
+  access: public|authenticated|optional
+  params: { }
+}
+
+ENTRY {
+  - from: <Source>
+    when: <condition>
+}
+
+EXIT {
+  - to: <Destination>
+    when: <condition>
+}
+
+PERMISSIONS {
+  // <permission_type> { required_for: [...] request_when: ... if denied: ... }
+}
+
+FEATURE_FLAGS {
+  // <flag_name> { when enabled: ... default: disabled }
+}
+
+MODEL {
+  $field!: Type := default
+  $optional?: Type
+  $computed ==> expression
+}
+
+DATA {
+  source: local|remote|mixed|none
+  read:
+    - <source>
+  write:
+    - <destination>
+}
+
+COPY {
+  screen.title: "<Title>"
+}
+
+UI {
+  #screen: SafeArea {
+    size: w:screen h:screen
+    behavior: safe_area_aware
+    children: [#content]
+  }
+
+  #content: Scroll {
+    in: #screen
+    pos: safe.top
+    size: w:fill h:fill
+    pad: lg
+    behavior: scroll_when_keyboard_open
+  }
+}
+
+STATES {
+  initial: @idle
+
+  @idle { trigger: screen.view }
+  @loading { trigger: async.started }
+  @error { trigger: async.failed }
+  @success { trigger: async.succeeded }
+}
+
+STATE_TRANSITIONS {
+  @idle + tap #primary_btn -> @loading
+  @loading + api.success -> @success
+  @loading + api.failure -> @error
+}
+
+LIFECYCLE {
+  on screen.view do onScreenView()
+  on app.foreground do onAppForeground()
+}
+
+ANIMATION {
+  screen {
+    enter: slide_from_right(md)
+    exit: slide_to_left(md)
+    reduced_motion: instant
+  }
+}
+
+VALIDATION {
+  VAL-01: <condition> => "<message>"
+}
+
+BUSINESS_RULES {
+  BR-01: when <condition> => <effect>
+}
+
+ACTIONS {
+  onScreenView() {
+    set @idle
+  }
+
+  primaryAction() {
+    if <guard>:
+      return
+
+    set @loading
+    response = await <API_CALL>
+
+    match response.status:
+      200 => set @success
+      else => set @error
+  }
+}
+
+FLOW {
+  on screen.view do set @idle
+  on tap #primary_btn when <condition> do primaryAction()
+}
+
+API {
+  ApiName.method {
+    request: METHOD /path
+    auth: bearer|none
+    cache: none|stale_while_revalidate
+    success 200: { }
+    errors: {
+      500: server_error   // handled: ERR-500
+    }
+    timeout_ms: 10000
+    retry: none
+  }
+}
+
+NAVIGATION {
+  on <event> -> <Destination> { route: /path }
+}
+
+ANALYTICS {
+  event_name {
+    trigger: <event>
+    props: { }
+  }
+
+  privacy {
+    never_send: []
+  }
+}
+
+A11Y {
+  screen_title: "<Title>"
+  focus_order: []
+  touch_targets: >=44pt
+  dynamic_type: supported up_to 200%
+  contrast: wcag_aa
+  reduced_motion: no_required_motion
+}
+
+ERRORS {
+  ERR-500 {
+    when: ApiName.method returns 5xx
+    ui: show #error_banner with copy.common.error.generic
+    recovery: user retries
+  }
+}
+
+ACCEPTANCE {
+  AC-01:
+    Given <context>
+    When <action>
+    Then <expected result>
+}

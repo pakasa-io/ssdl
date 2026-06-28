@@ -1,0 +1,758 @@
+SCREEN Login v1
+
+META {
+  feature: Authentication
+  owner: Growth/Auth Team
+  platform: all
+  priority: P0
+  status: ready
+  last_updated: 2026-05-31
+  changelog: {
+    v1.4.0: "Add import/include system: §4a Import and Include syntax, §4b Fragment file format. import/from/at/as/include/export/FRAGMENT keywords. Named, namespace, and aliased imports. Version pinning with at v<n>. @alias paths via ssdl.config.json. include for inlining shared section content with ordering semantics. Fragment files: FRAGMENT header, FRAGMENT_META changelog, export declarations, re-export barrel pattern. MODEL field set imports with use keyword. LINT-047–053."
+    v1.3.0: "Simplification pass: merge ConfirmDialog+DialogBox→Dialog; merge EmptyState+ErrorState→EmptyState{type:}; merge Carousel+Pager→Carousel{fill:true}; demote PullRefreshIndicator→PullToRefresh{custom_indicator:}, WrapStack→HStack{wrap:true}, DragHandle→convention, Masonry→Grid{masonry:true}; add SpeedDialItem+ContextMenuItem child components replacing inline arrays; fix Tag.text:, Stat.subtitle:, EmptyState.description:, RichTextEditor.on change:; remove default values from examples; add §48.28 EmptyState types."
+    v1.2.0: "Add 53 new component types across §16 and §16a — content (Tag, Rating, NumberBadge, StatusIndicator, Thumbnail, PriceTag, Stat, QRCode, Lottie, MapView, DragHandle), input (OTPInput, PhoneInput, TagInput, QuantityInput, LocationInput, TimePicker, DateTimePicker, ColorPicker, RichTextEditor, Scanner, SegmentedControl, ToggleGroup), action (SpeedDial, ContextMenu), feedback (ActionSheet, EmptyState, ErrorState, Popover, ConfirmDialog, DialogBox, StepIndicator, LoadingOverlay, NetworkBanner, InlineLoader, PullRefreshIndicator), layout (NavBar, TabBar, TabItem, Drawer, DrawerItem, StickyHeader, Carousel, Pager, Masonry, SectionList, Table, SearchBar, Accordion, Collapsible, WrapStack, FormGroup, PullToRefresh). Progress gains style: linear/circular. Component directives in §16a. Vocabulary §48.11-48.23. LINT-033-041."
+    v1.1.0: "Unified on event: syntax, screen.view lifecycle vocabulary, cross-field and async validation, animation easing and chaining, A11Y roles, analytics dedup/consent, expanded input directives, initial: state declaration, feature flag fallback:, traceability guidance"
+    v1.0.0: "Add rate-limit, server-error, and session-expiry coverage"
+  }
+}
+
+PURPOSE {
+  Allow registered users to authenticate with email and password.
+}
+
+SCOPE {
+  in:
+    - Email/password login
+    - Forgot password link
+    - Signup link
+    - Redirect after successful login
+
+  out:
+    - Social login
+    - Passwordless login
+    - Multi-factor authentication
+    - Biometric login (flag-gated, out of scope for v1)
+}
+
+ROUTE {
+  path: /login
+  type: screen
+  access: public
+  params: {
+    entry_source?: String
+    redirect_to?: String
+    opened_from_session_expired?: Boolean := false
+  }
+}
+
+ACTORS {
+  primary: RegisteredUser
+  systems: [LoginAPI, AnalyticsService, SecureStorage]
+}
+
+ENTRY {
+  - from: AppLaunch
+    when: user.authenticated == false
+
+  - from: SessionExpired
+    when: token.expired == true
+
+  - from: Signup
+    when: user taps "Already have an account?"
+}
+
+EXIT {
+  - to: Home
+    when: login.success && $redirect_to.empty
+
+  - to: $redirect_to
+    when: login.success && $redirect_to.exists
+
+  - to: ForgotPassword
+    when: tap #forgot_link
+
+  - to: Signup
+    when: tap #signup_link
+}
+
+FEATURE_FLAGS {
+  biometric_login_prompt {
+    when enabled:
+      show #biometric_btn
+    when disabled:
+      hide #biometric_btn
+    default: disabled
+  }
+}
+
+MODEL {
+  $email!: Email := ""
+  $password!: String := ""
+  $remember_me: Boolean := false
+  $entry_source?: String
+  $redirect_to?: String
+  $opened_from_session_expired: Boolean := false
+  $error_msg?: String
+  $submit_attempted: Boolean := false
+
+  $email_valid ==> matchesEmail(trim($email))
+  $password_valid ==> length($password) >= 8
+  $form_valid ==> $email_valid && $password_valid
+  $is_loading ==> @loading                         // derived from state; do not assign directly
+  $can_submit ==> $form_valid && !$is_loading
+}
+
+DATA {
+  source: mixed
+
+  read:
+    - route_param: entry_source?
+    - route_param: redirect_to?
+    - route_param: opened_from_session_expired?
+    - local: saved_email?
+
+  write:
+    - secure_storage: auth_token
+    - secure_storage: refresh_token
+    - analytics: login events
+}
+
+COPY {
+  login.title: "Welcome back"
+  login.subtitle: "Log in to continue"
+  login.email_label: "Email"
+  login.password_label: "Password"
+  login.submit: "Log In"
+  login.forgot_password: "Forgot password?"
+  login.remember_me: "Remember me"
+  login.signup_prompt: "Don't have an account?"
+  login.signup_link: "Create account"
+  login.error.invalid_credentials: "Email or password is incorrect."
+  login.error.account_locked: "Your account is locked. Contact support."
+  login.error.rate_limited: "Too many attempts. Try again later."
+  common.error.network: "Check your connection and try again."
+  common.error.generic: "Something went wrong. Try again."
+}
+
+UI {
+  #screen: SafeArea {
+    size: w:screen h:screen
+    behavior: safe_area_aware
+    children: [#content, #loading_overlay]
+  }
+
+  #content: Scroll {
+    in: #screen
+    pos: safe.top
+    size: w:fill h:fill
+    pad: lg
+    behavior: [scroll_when_keyboard_open, dismiss_keyboard_on_scroll]
+    pagination: none
+    children: [#header, #form, #secondary_actions]
+  }
+
+  #header: VStack {
+    in: #content
+    pos: top.center
+    align: center
+    gap: xs
+    size: w:fill h:hug
+    children: [#logo, #title, #subtitle]
+  }
+
+  #logo: Img {
+    in: #header
+    pos: top.center
+    size: w:xl h:hug
+    visible_when: screen.size != compact
+  }
+
+  #title: Txt {
+    in: #header
+    text: copy.login.title
+    align: center
+    size: w:fill h:hug
+    style: heading_lg
+  }
+
+  #subtitle: Txt {
+    in: #header
+    text: copy.login.subtitle
+    align: center
+    size: w:fill h:hug
+    style: body_md
+  }
+
+  #form: VStack {
+    in: #content
+    pos: below(#header, xl)
+    align: stretch
+    gap: md
+    size: w:fill h:hug
+    children: [#email_input, #password_input, #forgot_link, #remember_me_chk, #error_banner, #login_btn]
+  }
+
+  #email_input: Input {
+    in: #form
+    label: copy.login.email_label
+    bind: $email
+    keyboard: email
+    autocomplete: email
+    autocapitalize: none
+    size: w:fill h:lg
+    style: body_md
+    error: errorFor($email)
+    on blur: validate $email
+    a11y: "Email address, required"
+  }
+
+  #password_input: Pwd {
+    in: #form
+    label: copy.login.password_label
+    bind: $password
+    autocomplete: password
+    size: same_w(#email_input) h:lg
+    style: body_md
+    error: errorFor($password)
+    on blur: validate $password
+    on submit: submitLogin() when $can_submit
+    a11y: "Password, required, secure text field"
+  }
+
+  #forgot_link: Link {
+    in: #form
+    text: copy.login.forgot_password
+    align: end
+    size: w:hug h:md
+    style: label_md
+    on tap: nav ForgotPassword
+  }
+
+  #remember_me_chk: Chk {
+    in: #form
+    label: copy.login.remember_me
+    bind: $remember_me
+    size: w:fill h:md
+    style: body_md
+    validation: none
+    a11y: "Remember me"
+  }
+
+  #error_banner: Banner {
+    in: #form
+    type: error
+    text: $error_msg
+    size: w:fill h:wrap
+    style: body_md
+    visible_when: $error_msg.exists
+    animate: slide_down(sm)
+    a11y: announce_when_visible
+  }
+
+  #login_btn: Btn {
+    in: #form
+    text: copy.login.submit
+    size: w:fill h:lg
+    style: label_lg
+    enabled_when: $can_submit
+    loading_when: @loading
+    on tap: submitLogin()
+    a11y: "Log In"
+  }
+
+  #secondary_actions: HStack {
+    in: #content
+    pos: below(#form, lg)
+    align: main:center cross:center
+    gap: xs
+    size: w:fill h:hug
+    children: [#signup_prompt, #signup_link]
+  }
+
+  #signup_prompt: Txt {
+    in: #secondary_actions
+    text: copy.login.signup_prompt
+    size: w:hug h:hug
+    style: body_md
+  }
+
+  #signup_link: Link {
+    in: #secondary_actions
+    text: copy.login.signup_link
+    size: w:hug h:hug
+    style: label_md
+    on tap: nav Signup
+  }
+
+  #loading_overlay: Overlay {
+    in: #screen
+    layer: z:overlay
+    visible_when: @loading
+    children: [#loading_spinner]
+  }
+
+  #loading_spinner: Spinner {
+    in: #loading_overlay
+    pos: parent.center
+    size: md
+  }
+}
+
+STATES {
+  initial: @idle
+
+  @idle {
+    trigger: screen.view
+    ui: show form, hide #error_banner, disable #login_btn if !$form_valid
+    allowed_actions: [editFields, tapForgotPassword, tapSignup]
+  }
+
+  @valid {
+    trigger: $form_valid == true
+    ui: enable #login_btn
+    allowed_actions: [submitLogin, editFields, tapForgotPassword, tapSignup]
+  }
+
+  @invalid {
+    trigger: $form_valid == false
+    ui: disable #login_btn
+    allowed_actions: [editFields, tapForgotPassword, tapSignup]
+  }
+
+  @loading {
+    trigger: submitLogin.started
+    ui: disable form, show loading spinner inside #login_btn and #loading_overlay
+    allowed_actions: []
+  }
+
+  @error {
+    trigger: submitLogin.failed
+    ui: show #error_banner, enable form
+    allowed_actions: [editFields, submitLogin, tapForgotPassword]
+  }
+
+  @success {
+    trigger: submitLogin.succeeded
+    ui: none
+    allowed_actions: [navigate]
+  }
+}
+
+STATE_TRANSITIONS {
+  @idle + input.changed when $form_valid -> @valid
+  @idle + input.changed when !$form_valid -> @invalid
+  @valid + tap #login_btn -> @loading
+  @invalid + tap #login_btn -> @invalid
+  @loading + api.success -> @success
+  @loading + api.failure -> @error
+  @error + input.changed -> @idle
+  @success + navigate -> exit
+}
+
+LIFECYCLE {
+  on screen.view do onScreenView()
+  on app.foreground do onAppForeground()
+}
+
+ANIMATION {
+  screen {
+    enter: slide_from_right(md)
+    exit: slide_to_left(md)
+    reduced_motion: instant
+  }
+
+  #error_banner {
+    enter: slide_down(sm)
+    exit: fade_out(xs)
+    reduced_motion: instant
+  }
+}
+
+VALIDATION {
+  VAL-01: $email.empty => "Email is required"
+  VAL-02: !$email.matches(email_regex) => "Enter a valid email"
+  VAL-03: $password.empty => "Password is required"
+  VAL-04: length($password) < 8 => "Password must be at least 8 characters"
+}
+
+VALIDATION_UI {
+  show field error after:
+    - field.blur
+    - submit attempted
+
+  clear field error when:
+    - user edits field
+
+  form_submit:
+    - set $submit_attempted := true
+    - show all field errors
+}
+
+BUSINESS_RULES {
+  // Button enable/disable and loading-disable are owned by the components'
+  // enabled_when:/loading_when: directives and summarized in STATES — not
+  // re-encoded here (§28.3 authority chain; §34: rules avoid visual styling).
+
+  BR-01: when LoginAPI.login returns 401 =>
+    $error_msg := copy.login.error.invalid_credentials
+
+  BR-02: when LoginAPI.login returns 423 =>
+    $error_msg := copy.login.error.account_locked
+
+  BR-03: when LoginAPI.login returns 429 =>
+    $error_msg := copy.login.error.rate_limited
+
+  BR-04: when network unavailable =>
+    $error_msg := copy.common.error.network
+
+  BR-05: when login succeeds && $redirect_to.exists =>
+    nav $redirect_to
+
+  BR-06: when login succeeds && $redirect_to.empty =>
+    nav Home
+}
+
+ACTIONS {
+  onScreenView() {
+    if $submit_attempted == false:
+      set @idle
+    // Do not reset form state on re-view; user may have returned from ForgotPassword
+  }
+
+  onAppForeground() {
+    // Check if session was established externally (e.g., magic link in browser)
+    if auth.isAuthenticated():
+      nav Home
+  }
+
+  submitLogin() {
+    $submit_attempted := true
+
+    validate $email
+    validate $password
+
+    if !$form_valid:
+      set @invalid
+      return
+
+    set @loading           // $is_loading derived from @loading — no manual assignment needed
+    $error_msg := null
+
+    emit login_submitted {
+      source: $entry_source,
+      email_present: $email.exists
+    }
+
+    response = ~> LoginAPI.login({
+      email: trim($email),
+      password: $password,
+      remember_me: $remember_me
+    })
+
+    if response.status == 200:
+      securelyStore("auth_token", response.body.token)
+      securelyStore("refresh_token", response.body.refresh_token)
+
+      emit login_success {
+        method: "email_password"
+      }
+
+      set @success
+
+      if $redirect_to.exists:
+        nav $redirect_to
+      else:
+        nav Home
+
+    else if response.status == 401:
+      $error_msg := copy.login.error.invalid_credentials
+      emit login_failed { error_code: 401 }
+      set @error
+
+    else if response.status == 423:
+      $error_msg := copy.login.error.account_locked
+      emit login_failed { error_code: 423 }
+      set @error
+
+    else if response.status == 429:
+      $error_msg := copy.login.error.rate_limited
+      emit login_failed { error_code: 429 }
+      set @error
+
+    else:
+      $error_msg := copy.common.error.generic
+      emit login_failed { error_code: response.status }
+      set @error
+  }
+}
+
+FLOW {
+  on screen.view do onScreenView()
+
+  on input.change #email_input do {
+    $error_msg := null
+    validate $email
+    recompute $form_valid
+  }
+
+  on input.change #password_input do {
+    $error_msg := null
+    validate $password
+    recompute $form_valid
+  }
+
+  on tap #login_btn when $can_submit do submitLogin()
+
+  on tap #forgot_link do nav ForgotPassword
+
+  on tap #signup_link do nav Signup
+
+  on keyboard.submit #password_input when $can_submit do submitLogin()
+}
+
+API {
+  LoginAPI.login {
+    request: POST /auth/login
+    auth: none
+    cache: none
+
+    body: {
+      email: String
+      password: String
+      remember_me: Boolean
+    }
+
+    success 200: {
+      token: Token
+      refresh_token: Token
+      user_id: ID
+      expires_at: DateTime
+    }
+
+    errors: {
+      400: invalid_request      // handled: globally by HTTP interceptor
+      401: invalid_credentials  // handled: ERR-401
+      423: account_locked       // handled: ERR-423
+      429: rate_limited         // handled: ERR-429
+      500: server_error         // handled: ERR-500
+    }
+
+    timeout_ms: 10000
+    retry: none
+  }
+}
+
+NAVIGATION {
+  on login.success when $redirect_to.exists -> $redirect_to {
+    replace_stack: true
+  }
+
+  on login.success when $redirect_to.empty -> Home {
+    route: /home
+    replace_stack: true
+  }
+
+  on tap #forgot_link -> ForgotPassword {
+    route: /forgot-password
+  }
+
+  on tap #signup_link -> Signup {
+    route: /signup
+  }
+
+  back_behavior {
+    default: previous_screen
+    when $opened_from_session_expired == true: disabled
+  }
+}
+
+ANALYTICS {
+  login_viewed {
+    trigger: screen.first_view
+    dedup: session
+    props: {
+      source: $entry_source
+    }
+  }
+
+  login_submitted {
+    trigger: tap #login_btn
+    dedup: none
+    props: {
+      source: $entry_source
+      email_present: $email.exists
+    }
+  }
+
+  login_success {
+    trigger: LoginAPI.login.success
+    dedup: none
+    props: {
+      method: "email_password"
+    }
+  }
+
+  login_failed {
+    trigger: LoginAPI.login.failure
+    dedup: none
+    props: {
+      error_code: response.status
+    }
+  }
+
+  forgot_password_tapped {
+    trigger: tap #forgot_link
+    dedup: none
+    props: {
+      source: "login"
+    }
+  }
+
+  signup_tapped {
+    trigger: tap #signup_link
+    dedup: none
+    props: {
+      source: "login"
+    }
+  }
+
+  privacy {
+    never_send: [$password, auth_token, refresh_token]
+    email: hash_only
+    user_id: allowed_after_auth
+    consent: required_before_fire
+  }
+}
+
+A11Y {
+  screen_title: "Log In"
+
+  focus_order: [
+    #email_input,
+    #password_input,
+    #forgot_link,
+    #remember_me_chk,
+    #login_btn,
+    #signup_link
+  ]
+
+  screen_reader {
+    #email_input: "Email address, required"
+    #password_input: "Password, required, secure text field"
+    #remember_me_chk: "Remember me, checkbox"
+    #login_btn: "Log In button"
+    #error_banner: announce_when_visible
+  }
+
+  touch_targets: >=44pt
+  dynamic_type: supported up_to 200%
+  contrast: wcag_aa
+  reduced_motion: no_required_motion
+
+  keyboard {
+    email_return: next #password_input
+    password_return: submitLogin when $can_submit
+  }
+}
+
+ERRORS {
+  ERR-401 {
+    when: LoginAPI.login returns 401
+    ui: show #error_banner with copy.login.error.invalid_credentials
+    recovery: user edits credentials and retries
+  }
+
+  ERR-423 {
+    when: LoginAPI.login returns 423
+    ui: show #error_banner with copy.login.error.account_locked
+    recovery: user contacts support
+  }
+
+  ERR-429 {
+    when: LoginAPI.login returns 429
+    ui: show #error_banner with copy.login.error.rate_limited
+    recovery: user waits before retrying
+  }
+
+  ERR-NETWORK {
+    when: network unavailable
+    ui: show #error_banner with copy.common.error.network
+    recovery: retry after network returns
+  }
+
+  ERR-TIMEOUT {
+    when: LoginAPI.login times out (>10000ms)
+    ui: show #error_banner with copy.common.error.generic
+    recovery: user retries
+  }
+
+  ERR-500 {
+    when: LoginAPI.login returns 5xx
+    ui: show #error_banner with copy.common.error.generic
+    recovery: user retries; do not auto-retry in auth context
+  }
+}
+
+ACCEPTANCE {
+  AC-01:
+    Given user opens Login screen
+    Then #email_input, #password_input, #login_btn, #forgot_link, and #signup_link are visible
+
+  AC-02:
+    Given $email is empty
+    Then #login_btn is disabled
+
+  AC-03:
+    Given $email is invalid
+    When user leaves #email_input
+    Then user sees "Enter a valid email"
+
+  AC-04:
+    Given $password has fewer than 8 characters
+    When user leaves #password_input
+    Then user sees "Password must be at least 8 characters"
+
+  AC-05:
+    Given $email and $password are valid
+    Then #login_btn is enabled
+
+  AC-06:
+    Given valid credentials
+    When user taps #login_btn
+    Then LoginAPI.login is called
+    And the screen enters @loading
+
+  AC-07:
+    Given LoginAPI.login returns 200
+    Then auth tokens are stored securely
+    And user is navigated to Home or $redirect_to
+
+  AC-08:
+    Given LoginAPI.login returns 401
+    Then user sees "Email or password is incorrect."
+    And user remains on Login screen
+
+  AC-09:
+    Given LoginAPI.login returns 500
+    Then user sees "Something went wrong. Try again."
+    And user remains on Login screen
+
+  AC-10:
+    Given user taps #forgot_link
+    Then user is navigated to ForgotPassword
+
+  AC-11:
+    Given user returns to Login after visiting ForgotPassword
+    Then form state is preserved (not reset)
+
+  AC-12:
+    Given screen reader is enabled
+    Then fields, buttons, errors, and navigation links are announced correctly
+    And #error_banner is announced when it appears
+
+  AC-13:
+    Given user checks #remember_me_chk
+    When login succeeds
+    Then remember_me: true is sent in the LoginAPI.login request body
+}
+

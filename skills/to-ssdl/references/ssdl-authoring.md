@@ -5,9 +5,10 @@ principal mobile UI/UX engineer fills each section. It does **not** restate the 
 
 ## Lazy loading by trigger (the load order)
 
-Follow `agents/AGENT_PROTOCOL.md`, *reactively*: read the index once, then load each spec file only when a
-**trigger** — an SSDL token about to be emitted — fires. Read **`agents/agent.manifest.yml` first** (the index;
-every pointer in it is relative to the **repo root**) — but read **no** spec file until a trigger calls for it.
+Follow `AGENT_PROTOCOL.md`, *reactively*: read the index once, then load each spec file only when a
+**trigger** — an SSDL token about to be emitted — fires. Read **`agent.manifest.yml` first** (the index, bundled
+with this skill; every pointer in it resolves relative to the **skill directory**) — but read **no** spec file until
+a trigger calls for it.
 
 | When about to… (trigger) | Lazily `load()` | Manifest key |
 |--------------------------|-----------------|--------------|
@@ -24,8 +25,8 @@ every pointer in it is relative to the **repo root**) — but read **no** spec f
   `ui_core` base + the journey map. Lazy *unload* matters as much as lazy load.
 - `components ∪ standard` is the complete, authoritative component set — **use only those**; a `standard` component
   (no `f:`) is fully specified by `ui_core`, not under-documented.
-- Defer to **loaded file content** for authority rules; never author from memory of the language. Prefer slices to
-  the monolithic `ssdl.spec.md` (use that only for a deliberate full linear read).
+- Defer to **loaded file content** for authority rules; never author from memory of the language. The slices are
+  sufficient; the monolithic `ssdl.spec.md` is **not** bundled with the skill (it lives only in the SSDL repo).
 
 ## File naming and placement
 

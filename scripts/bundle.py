@@ -12,7 +12,7 @@ Usage: python3 scripts/bundle.py            (writes ssdl.spec.md + agents/agent.
 
 Run from anywhere: paths resolve against the repo root (this script's parent directory).
 """
-import re, os, glob, sys
+import re, os, glob, sys, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))   # scripts/
 ROOT = os.path.dirname(HERE)                         # repo root
@@ -20,6 +20,18 @@ os.chdir(ROOT)                                       # resolve spec/ + output pa
 
 SPEC = "spec"
 OUT_SPEC, OUT_AGENT = "ssdl.spec.md", "agents/agent.manifest.yml"
+
+# self-contained skill: the to-ssdl skill carries a vendored snapshot of the spec it consumes,
+# so the skill directory works standalone. The snapshot is generated here and drift-checked.
+SKILL = "skills/to-ssdl"
+VENDOR_FILES = [                                    # (canonical source, vendored copy)
+    (OUT_AGENT,                          f"{SKILL}/agent.manifest.yml"),
+    ("agents/AGENT_PROTOCOL.md",         f"{SKILL}/AGENT_PROTOCOL.md"),
+    ("assets/lint-rules.md",             f"{SKILL}/assets/lint-rules.md"),
+    ("assets/completeness-checklist.md", f"{SKILL}/assets/completeness-checklist.md"),
+    ("assets/template.minimal.ssdl",     f"{SKILL}/assets/template.minimal.ssdl"),
+    ("assets/sample.login.ssdl",         f"{SKILL}/assets/sample.login.ssdl"),
+]
 
 # ---------- manifest ----------
 man = open(os.path.join(HERE, "bundler.manifest.yml"), encoding="utf-8").read()
@@ -136,13 +148,41 @@ def build_agent_manifest():
     assert all(c in tax for c in comp_file), "component absent from §18 taxonomy"
     return "\n".join(out)
 
+
+# ---------- vendored self-contained skill snapshot ----------
+def _vendor_pairs():
+    spec_files = sorted(p for p in glob.glob(f"{SPEC}/**/*.md", recursive=True) if os.path.isfile(p))
+    return [(p, os.path.join(SKILL, p)) for p in spec_files] + VENDOR_FILES
+
+def vendor(check=False):
+    """Sync (or, with check=True, verify) the self-contained snapshot under skills/to-ssdl/."""
+    pairs = _vendor_pairs()
+    if check:
+        drift = [dst for src, dst in pairs
+                 if not (os.path.exists(dst) and open(src, "rb").read() == open(dst, "rb").read())]
+        keep = {os.path.normpath(dst) for _, dst in pairs}
+        for v in glob.glob(f"{SKILL}/spec/**/*.md", recursive=True):   # stale vendored files
+            if os.path.normpath(v) not in keep:
+                drift.append(v + " (stale)")
+        return drift
+    shutil.rmtree(f"{SKILL}/spec", ignore_errors=True)                 # drop deletions, copy fresh
+    for src, dst in pairs:
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy2(src, dst)
+    return []
+
 if __name__ == "__main__":
     spec, agent = build_spec(), build_agent_manifest()
     if "--check" in sys.argv:
         ok = spec == open(OUT_SPEC, encoding="utf-8").read() and \
              agent == open(OUT_AGENT, encoding="utf-8").read()
-        print("round-trip:", "OK ✅" if ok else "DRIFT ❌")
-        sys.exit(0 if ok else 1)
+        drift = vendor(check=True)
+        print("round-trip:  ", "OK ✅" if ok else "DRIFT ❌")
+        print("vendored skill:", "OK ✅" if not drift else f"DRIFT ❌ ({len(drift)} file(s))")
+        for d in drift[:10]:
+            print("   ", d)
+        sys.exit(0 if ok and not drift else 1)
     open(OUT_SPEC, "w", encoding="utf-8").write(spec)
     open(OUT_AGENT, "w", encoding="utf-8").write(agent)
-    print(f"wrote {OUT_SPEC} + {OUT_AGENT}")
+    vendor()
+    print(f"wrote {OUT_SPEC} + {OUT_AGENT}; vendored spec snapshot -> {SKILL}/")

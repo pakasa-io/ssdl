@@ -2,7 +2,7 @@
 
 A compact, illustrative walkthrough of `to-ssdl` output: the business operation **"a returning user signs in"**
 modelled as a three-screen journey, navigation-stitched, with one shared fragment. Syntax here is illustrative —
-the authoritative grammar and exact directive options come from the spec via `agents/agent.manifest.yml` (load
+the authoritative grammar and exact directive options come from the spec bundled with this skill via `agent.manifest.yml` (load
 `sections.route`, `sections.navigation`, etc.).
 
 ## Journey map (Phase 4 artifact)
