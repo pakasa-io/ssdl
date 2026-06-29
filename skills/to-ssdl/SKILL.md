@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
 description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (bundled in the skill) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.4.0
+version: 0.5.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -125,8 +125,10 @@ journey order:
 5. **Commit** the screen, then move to the next. (Per-screen is the recommended cadence; commit only at the user's
    direction.)
 
-Author any new fragment (navigation chrome, design system) when first needed and import it. Keep only the journey
-map + the current screen's slices in working context.
+Place each file per `references/output-structure.md` — screens under their feature folder, shared details
+**imported, never inlined**; author a new fragment (navigation chrome, design system, validators, error map) when
+first needed and promote it to `shared/` once a 2nd feature uses it. Keep only the journey map + the current
+screen's slices in working context.
 
 #### Phase 6 — Review: navigation closure + lint + completeness
 Review the journey as a whole, and **re-read the written files from disk** — do not rely on recall of what was
@@ -150,6 +152,8 @@ then move to the next journey in the list (or stop). Commit only when the user a
   state and lifecycle.
 - **`references/ssdl-authoring.md`** — grounding via the agent manifest, file naming, mandatory vs optional
   sections, fragment reuse, and a principal-UX pass over each SSDL section.
+- **`references/output-structure.md`** — the generated corpus layout (feature-first + a `shared/` DRY core), the
+  promotion rule, fragment versioning/aliases, and the §46 export caveat for shared models/validators.
 - **`examples/onboarding-journey.md`** — a small worked journey showing the stitched output and its journey map.
 - **Bundled spec** (self-contained, alongside this skill): `agent.manifest.yml` (index), `spec/` (slices),
   `AGENT_PROTOCOL.md`, and the `assets/` files (`lint-rules.md`, `completeness-checklist.md`,

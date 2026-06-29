@@ -36,8 +36,9 @@ screen.<feature>.<screen-name>.ssdl     # one screen per file
 ```
 
 Examples: `screen.checkout.cart.ssdl`, `screen.auth.login.ssdl`, `shared.navigation.fragment.ssdl`,
-`design.tokens.fragment.ssdl`. Group a journey's screens together (a folder per journey or per feature reads well).
-Decide placement with the user when generating into an existing project — match what is already there.
+`design.tokens.fragment.ssdl`. For the full corpus layout — feature-first with a `shared/` DRY core, the promotion
+rule, and fragment versioning — see `output-structure.md`. When generating into an existing project, match what is
+already there.
 
 ## Mandatory vs optional sections
 

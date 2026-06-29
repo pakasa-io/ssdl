@@ -1,0 +1,110 @@
+# Output structure — the generated SSDL corpus
+
+How `to-ssdl` lays out the `.ssdl` files it generates: **feature-first for ownership, with a `shared/` core as the
+single source of truth** so cross-cutting design details change in one place. Apply this when deciding where a
+screen or fragment goes (Phase 4 placement, Phase 5 writing).
+
+## The layout
+
+```
+app-spec/                                   # the SSDL corpus — design source of truth (root name is the project's call)
+├─ ssdl.config.json                         # @aliases, fragment version pins, lint config
+├─ README.md                                # corpus map + conventions
+│
+├─ shared/                                   # ① app-wide DRY core — edit once, every importer updates
+│  ├─ design.tokens.fragment.ssdl            # type scale, spacing, color, radius, elevation, motion
+│  ├─ nav.app-shell.fragment.ssdl            # tab bar, nav bar, drawer — the app chrome
+│  ├─ copy.common.fragment.ssdl              # shared strings: actions, errors, empty/offline copy
+│  ├─ errors.common.fragment.ssdl            # error map: status/domain-code → ERR-ID → recovery + copy key
+│  ├─ validation.rules.fragment.ssdl         # reusable validators (matchesEmail, isStrongPassword, required, …)
+│  ├─ models.entities.fragment.ssdl          # UI view-models: Order, Money, Address, Product, User
+│  ├─ a11y.standards.fragment.ssdl           # focus-order rules, contrast, touch targets, reduced-motion
+│  ├─ api.contracts.fragment.ssdl            # base URL, auth, pagination, cache conventions
+│  ├─ analytics.conventions.fragment.ssdl    # event naming + privacy/consent defaults
+│  ├─ app.actors.fragment.ssdl               # actors + external systems used across screens
+│  └─ components/                            # reusable composite components (used by ≥2 features)
+│     ├─ ui.money.fragment.ssdl
+│     ├─ ui.user-avatar.fragment.ssdl
+│     └─ ui.product-card.fragment.ssdl
+│
+├─ features/                                 # ② feature-first — each owns its screens + local reuse
+│  ├─ auth/
+│  │  ├─ _journey.md                          # journey map(s) for the feature
+│  │  ├─ auth.shared.fragment.ssdl            # feature-local reuse (not yet app-wide)
+│  │  ├─ screen.auth.welcome.ssdl
+│  │  ├─ screen.auth.login.ssdl
+│  │  └─ screen.auth.reset-password.ssdl
+│  ├─ home/         · screen.home.dashboard.ssdl
+│  ├─ catalog/      · list · product-detail · search
+│  ├─ checkout/     · cart · address · payment · review · confirmation   (+ checkout.shared.fragment)
+│  ├─ orders/       · list · detail · tracking
+│  ├─ profile/      · profile · edit · wallet
+│  └─ settings/     · settings · about · legal
+│
+└─ journeys/                                 # ③ navigation overview (humans + the Phase-4 artifact)
+   ├─ _app-map.md                            # whole-app screen graph + entry points
+   └─ _deep-links.md                         # route/deep-link registry — every ROUTE.path in one view
+```
+
+## Three tiers of DRY
+
+1. **`shared/`** — app-wide single source of truth.
+2. **`features/<f>/<f>.shared.fragment.ssdl`** — feature-local reuse.
+3. **Screens `import` (never copy)** from both, **version-pinned** with `at v<n>`.
+
+**Promotion rule:** a definition used by **2+ features** graduates from feature-local → `shared/`; used by one
+feature, it stays local. Avoids both duplication and premature generalization.
+
+## What `shared/` owns
+
+**Presentation:** `design.tokens`, `nav.app-shell`, `copy.common`, `a11y.standards`, `components/`.
+**Contracts & instrumentation:** `api.contracts`, `analytics.conventions`, `app.actors`.
+**Logic layer** — the screen logic that drifts the most across screens, so share it deliberately:
+
+- **`errors.common`** — the error *map*: API status / domain code → `ERR-ID` → recovery + a `copy.common` message
+  key. Screens reference shared `ERR-IDs`; screen-unique errors stay local.
+- **`validation.rules`** — reusable validators. Messages live in `copy.common` (never hardcoded) for consistency +
+  i18n. Pure/format and common business validators are shared; screen-specific or async-uniqueness checks stay
+  local.
+- **`models.entities`** — UI **view-models** (the shape screens render), a *projection of* `api.contracts`. The
+  **backend/API contract is the source of truth** — do not re-model the domain here. Promote an entity only when
+  2+ features render it.
+
+Cohesion (kept acyclic by the import lint):
+
+```
+models.entities  → api.contracts
+validation.rules → copy.common
+errors.common    → copy.common ;  triggered by  api.contracts
+```
+
+## Conventions
+
+- **File naming** (per spec): `screen.<feature>.<name>.ssdl`, `<category>.<name>.fragment.ssdl`.
+- **`@aliases`** in `ssdl.config.json` (`@shared`, `@design`, `@features`) so imports survive moves:
+  `import { #app_tab_bar } from "@shared/nav.app-shell.fragment.ssdl" at v3`.
+- **Versioned fragments** — bump on a breaking change; screens pin `at v<n>` → controlled rollout (safe
+  design-system evolution).
+- **Journey maps are markdown** (`_journey.md`, `journeys/_app-map.md`) — the graph overview; the screens'
+  `ENTRY`/`EXIT`/`NAVIGATION` remain the source of truth.
+- **Lint the fragment graph** (LINT-047…053: acyclic imports, resolvable paths, no unused imports, no shadowing).
+
+## Change-once workflow
+
+Edit one shared fragment (token / copy / error map / validator / nav) → every importing screen updates, subject to
+its version pin. For new cross-feature reuse, author feature-local first and **promote to `shared/`** when a second
+feature needs it.
+
+## Spec-support caveat — check before emitting
+
+Presentation/contract fragments (components, copy keys, `ERR-IDs`, API contracts) export cleanly today.
+**`models.entities` and `validation.rules` require the fragment format to support exporting model types and
+validator rules** — confirm against the loaded `§46` (fragment file format), `§14` (MODEL), and `§34` (VALIDATION)
+before emitting them as shared fragments. If unsupported, keep those inline per screen (or raise a spec extension)
+rather than emitting invalid SSDL.
+
+## Why this shape
+
+Feature folders give team ownership and co-locate a journey's screens; shared design tokens make visual consistency
+a structural guarantee, not a review checklist; the deep-link registry prevents navigation drift; version pins let
+the design system evolve without breaking every screen at once.
