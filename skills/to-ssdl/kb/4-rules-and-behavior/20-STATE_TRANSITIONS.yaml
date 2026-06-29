@@ -1,0 +1,11 @@
+# 20-STATE_TRANSITIONS · KB fact card (4-rules-and-behavior)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: STATE_TRANSITIONS
+kind: section
+order: 20
+tier: 4-rules-and-behavior
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  transitions: []      # - { from, event, guard, to, effect, applies_to: [screens] }   (PRD state machine)
+feeds: []

@@ -1,0 +1,15 @@
+# 05-ROUTE · KB fact card (1-inputs-and-vocabulary)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: ROUTE
+kind: section
+order: 5
+tier: 1-inputs-and-vocabulary
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  applies_to: []       # screen on this route
+  path: null           # operation/route path (openapi / routing)
+  access: null         # public | authenticated | optional (from security scheme)
+  params: []           # - { name, in: path|query, type, format, required, default, example, description }
+  deep_link: null      # external deep-link pattern, if any
+feeds: [MODEL]

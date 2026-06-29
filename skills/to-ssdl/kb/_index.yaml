@@ -1,0 +1,7 @@
+# _index.yaml · fast lookup over extracted facts (maintained during Phase-2 extraction).
+# Resolve "where are the facts for X, and which screens/sections use them?" before authoring.
+sources: {}           # "openapi: api/openapi.yaml"  -> [elements extracted from it]
+operations: {}        # "POST /auth/login"           -> [cards holding its facts: API, MODEL, ERRORS, ACTIONS]
+entities: {}          # "User"                       -> [MODEL, DATA, ...]
+attributes: {}        # "User.email"                 -> [MODEL, VALIDATION, ANALYTICS]
+screens: {}           # "screen.auth.login"         -> [facts whose applies_to includes it]

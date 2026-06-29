@@ -1,0 +1,14 @@
+# 03-PURPOSE · KB fact card (0-frame)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: PURPOSE
+kind: section
+order: 3
+tier: 0-frame
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  applies_to: []       # the screen this describes
+  statement: null      # why this screen exists (PRD)
+  primary_job: null    # the one job the user comes to do
+  success_metric: null # how success is measured (PRD / analytics)
+feeds: []

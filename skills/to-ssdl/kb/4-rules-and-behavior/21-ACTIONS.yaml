@@ -1,0 +1,12 @@
+# 21-ACTIONS · KB fact card (4-rules-and-behavior)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: ACTIONS
+kind: section
+order: 21
+tier: 4-rules-and-behavior
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  calls: []            # - { name, on_event, operation, request_from: [fields], sets_states: [...],
+                       #     on_success, on_error, optimistic: bool, applies_to: [screens] }   (openapi + PRD)
+feeds: [FLOW, LIFECYCLE]

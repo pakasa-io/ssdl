@@ -1,0 +1,12 @@
+# 17-VALIDATION · KB fact card (4-rules-and-behavior)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: VALIDATION
+kind: section
+order: 17
+tier: 4-rules-and-behavior
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  constraints: []      # - { attr, rules: [ { kind: required|format|min|max|minLength|maxLength|pattern|enum, value } ],
+                       #     cross_field: <expr>, async: <uniqueness check>, message_key, applies_to: [screens] }   (schema + PRD)
+feeds: [VALIDATION_UI, ACCEPTANCE]

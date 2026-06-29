@@ -1,0 +1,13 @@
+# 27-ANALYTICS · KB fact card (6-instrumentation)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: ANALYTICS
+kind: section
+order: 27
+tier: 6-instrumentation
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  events: []           # - { name, trigger, props: [ { name, from_field } ], when, applies_to: [screens] }   (tracking plan)
+  pii: []              # - { field, applies_to: [screens] }   never_send (lifted from MODEL 'sensitive' facts)
+  consent: null        # consent / region requirement, if any
+feeds: []

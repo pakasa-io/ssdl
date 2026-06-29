@@ -1,0 +1,16 @@
+# 02-META · KB fact card (0-frame)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: META
+kind: section
+order: 2
+tier: 0-frame
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  applies_to: []       # the screen this frame describes
+  feature: null        # owning feature (PRD)
+  owner: null          # team
+  platform: null       # all | ios | android | web
+  priority: null       # P0 | P1 | P2
+  status: null         # draft | ready
+feeds: []

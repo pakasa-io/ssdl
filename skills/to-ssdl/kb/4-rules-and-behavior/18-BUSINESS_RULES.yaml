@@ -1,0 +1,11 @@
+# 18-BUSINESS_RULES · KB fact card (4-rules-and-behavior)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: BUSINESS_RULES
+kind: section
+order: 18
+tier: 4-rules-and-behavior
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  rules: []            # - { id, when: <cond>, then: <effect>, rationale, source, applies_to: [screens] }   (PRD)
+feeds: []

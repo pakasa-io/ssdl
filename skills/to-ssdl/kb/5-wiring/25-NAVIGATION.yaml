@@ -1,0 +1,11 @@
+# 25-NAVIGATION · KB fact card (5-wiring)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: NAVIGATION
+kind: section
+order: 25
+tier: 5-wiring
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  transitions: []      # - { event, to, route, params, replace: stack?, transition, applies_to: [screens] }   (PRD flows + routes)
+feeds: [ACCEPTANCE]

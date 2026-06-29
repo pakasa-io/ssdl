@@ -1,0 +1,16 @@
+# 13-MODEL · KB fact card (2-data-and-contracts)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: MODEL
+kind: section
+order: 13
+tier: 2-data-and-contracts
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  request: {}          # <Model>: { applies_to: [screens], attrs: [ { attr, type, format, required, default, enum: [...],
+                       #            min, max, minLength, maxLength, pattern, example, sensitive: bool, description } ] }   (openapi requestBody)
+  response: {}         # <Model>: { applies_to: [screens], attrs: [ { attr, type, format, nullable, enum: [...], example,
+                       #            readOnly, sensitive: bool, relation: <Entity>, description } ] }                       (openapi 2xx body)
+  entities: {}         # <Name>: { applies_to: [screens], key, relations: [ { to, kind: one|many } ], attrs: [ ...as above... ] }   (schemas, $ref)
+  derived: []          # - { field, applies_to: [screens] }   candidate computed fields, e.g. $can_submit, $total
+feeds: [DATA, UI, VALIDATION, BUSINESS_RULES, ACTIONS, FLOW, ANALYTICS, ACCEPTANCE]

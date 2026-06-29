@@ -1,0 +1,11 @@
+# 29-ACCEPTANCE · KB fact card (7-verification)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: ACCEPTANCE
+kind: section
+order: 29
+tier: 7-verification
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  criteria: []         # - { id, given, when, then, source_story, covers: happy|validation|error|nav|review|a11y, applies_to: [screens] }   (PRD / stories)
+feeds: []

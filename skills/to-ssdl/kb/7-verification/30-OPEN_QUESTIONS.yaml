@@ -1,0 +1,11 @@
+# 30-OPEN_QUESTIONS · KB fact card (7-verification)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: OPEN_QUESTIONS
+kind: section
+order: 30
+tier: 7-verification
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  gaps: []             # - { id, about_element, question, blocks_ready: bool, source_gap, applies_to: [screens] }
+feeds: []

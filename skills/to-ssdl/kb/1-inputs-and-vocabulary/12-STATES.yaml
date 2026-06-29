@@ -1,0 +1,12 @@
+# 12-STATES · KB fact card (1-inputs-and-vocabulary)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: STATES
+kind: section
+order: 12
+tier: 1-inputs-and-vocabulary
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  states: []           # - { name, kind: idle|loading|empty|error|success|custom, trigger, on_enter,
+                       #     initial: bool, terminal: bool, applies_to: [screens] }   (PRD / async ops)
+feeds: [UI, BUSINESS_RULES, STATE_TRANSITIONS, ACTIONS, FLOW, LIFECYCLE, ANIMATION, ACCEPTANCE]

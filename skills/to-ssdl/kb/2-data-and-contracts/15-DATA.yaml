@@ -1,0 +1,13 @@
+# 15-DATA · KB fact card (2-data-and-contracts)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: DATA
+kind: section
+order: 15
+tier: 2-data-and-contracts
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  reads: []            # - { entity|operation, source: local|remote, cache: none|swr|..., freshness, applies_to: [screens] }   (openapi / db)
+  writes: []           # - { entity|operation, effect, applies_to: [screens] }
+  offline: null        # offline / queue behaviour, if specified
+feeds: []

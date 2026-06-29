@@ -1,0 +1,15 @@
+# 28-A11Y · KB fact card (6-instrumentation)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: A11Y
+kind: section
+order: 28
+tier: 6-instrumentation
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  per_screen: []       # - { applies_to: [screen], focus_order: [#ids], labels: [ { id, label_key } ], roles: [...] }   (design / a11y spec)
+  conventions:         # global a11y standards
+    contrast: null       # e.g. wcag_aa
+    dynamic_type: null   # support level
+    target_min: null     # min touch-target size
+feeds: [ACCEPTANCE]

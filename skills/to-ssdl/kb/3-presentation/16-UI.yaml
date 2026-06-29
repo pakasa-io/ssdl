@@ -1,0 +1,16 @@
+# 16-UI · KB fact card (3-presentation)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: UI
+kind: section
+order: 16
+tier: 3-presentation
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  render: []           # - { attr, from: <Model>.response, component, label_key, format, applies_to: [screens] }   (MODEL facts + design)
+  implied: []          # data -> component map (reference): array->List/Table · enum->Select/SegmentedControl · bool->Switch ·
+                       #   date->DatePicker · image->Thumbnail · money->PriceTag · status->StatusIndicator · phone->PhoneInput
+  actions: []          # - { label, intent, primary: bool, applies_to: [screens] }   (CTAs, from PRD)
+  layout: []           # - { region/hierarchy, applies_to: [screens] }   (design)
+  states_shown: []     # - { state, applies_to: [screens] }   which @states have a distinct UI
+feeds: [ERRORS, STATE_TRANSITIONS, VALIDATION_UI, FLOW, NAVIGATION, ANIMATION, ANALYTICS, A11Y, ACCEPTANCE]

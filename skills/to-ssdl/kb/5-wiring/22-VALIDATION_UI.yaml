@@ -1,0 +1,11 @@
+# 22-VALIDATION_UI · KB fact card (5-wiring)
+# Facts extracted from the source material (Phase 2). Sections read `facts`; `feeds` routes them downstream.
+# `applies_to` is populated retrospectively — appended as each screen that consumes a fact is built.
+element: VALIDATION_UI
+kind: section
+order: 22
+tier: 5-wiring
+extracted_from: []         # provenance, e.g. 'openapi: api/openapi.yaml#/paths/~1auth~1login/post' or 'prd: docs/login.md'
+facts:
+  surface: []          # - { val_id, field, when: on_blur|on_change|on_submit, display: inline|summary, applies_to: [screens] }   (design / PRD)
+feeds: []

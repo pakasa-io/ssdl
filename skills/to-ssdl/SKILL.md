@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
 description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (bundled in the skill) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.6.0
+version: 0.7.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -88,6 +88,10 @@ bulk-load spec files; each `sections.*` / `components.*` / `enums` file loads la
 project, explore them (launch read-only explorer agents for larger codebases) to learn naming, fragments already in
 use, navigation conventions, and the design-system fragment. Reuse before inventing. Report what exists.
 
+**Extract the project's source material** (OpenAPI, JSON schemas, DB/ERD, PRD, design specs) into the KB
+(`kb/`) — fill each element's `facts` + `extracted_from`. These grounded facts are the input Phase 5 authors from;
+anything missing or ambiguous lands in `OPEN_QUESTIONS`.
+
 #### Phase 3 — Clarifying questions (do not skip)
 Resolve ambiguities **before** designing the graph. Typical gaps: the actors and their `access:` level
 (public/authenticated/optional); journey entry points (deep link, tab, push, hand-off from another flow); exit and
@@ -116,10 +120,15 @@ journey in one pass. For each screen, in journey order:
 1. **Load by trigger.** From the screen's entry in the map, derive its triggers — the components it places and the
    sections it needs — then `load()` exactly those slices and resolve their `with:` / `needs:` / `§N` to closure
    (the trigger table is in `references/ssdl-authoring.md`). Load nothing else.
-2. **Author** its full SSDL against the map: the mandatory sections (`SCREEN`, `ROUTE`, `MODEL`, `UI`, `STATES`,
-   `FLOW`, `ACCEPTANCE`) plus those the operation requires (`DATA`, `API`, `BUSINESS_RULES`, `VALIDATION`,
-   `LIFECYCLE`, `STATE_TRANSITIONS`, `NAVIGATION`, `ANALYTICS`, `A11Y`, `ERRORS`). Follow the recommended section
-   order; mirror `assets/template.minimal.ssdl` and `assets/sample.login.ssdl`.
+2. **Author its sections in dependency order** (the `kb/` tree: `MODEL` before `UI`, `STATES` before
+   `FLOW`/`LIFECYCLE`, `API`/`ERRORS` before `ACCEPTANCE`) — *not* the comprehension order. Author each section from
+   its **KB fact card** (`facts`, extracted in Phase 2 — the real attributes, contracts, and constraints) plus its
+   SSDL spec slice; the card's `feeds` routes those facts into the downstream sections that consume them — and as a
+section consumes a fact, append its screen to that fact's `applies_to` (which is populated retrospectively). Cover the
+   mandatory sections (`SCREEN`, `ROUTE`,
+   `MODEL`, `UI`, `STATES`, `FLOW`, `ACCEPTANCE`) plus those the operation requires (`DATA`, `API`,
+   `BUSINESS_RULES`, `VALIDATION`, `LIFECYCLE`, `STATE_TRANSITIONS`, `NAVIGATION`, `ANALYTICS`, `A11Y`, `ERRORS`);
+   mirror `assets/template.minimal.ssdl` and `assets/sample.login.ssdl`.
 3. **Self-check** the screen in isolation: `#id`s internally consistent; its `ENTRY`/`EXIT`/`NAVIGATION` edges
    match the map; per-screen lint.
 4. **Write** the file and **release its body from working context** — rely on the map + disk thereafter.
@@ -154,7 +163,10 @@ then move to the next journey in the list (or stop). Commit only when the user a
 - **`references/ssdl-authoring.md`** — grounding via the agent manifest, file naming, mandatory vs optional
   sections, fragment reuse, and a principal-UX pass over each SSDL section.
 - **`references/output-structure.md`** — the generated corpus layout (feature-first + a `shared/` DRY core), the
-  promotion rule, fragment versioning/aliases, and the §46 export caveat for shared models/validators.
+  promotion rule, fragment versioning, and logical imports (`@shared/<name>.ssdl`).
+- **`kb/`** — the **knowledge base**: a fact-extraction scaffold (one YAML card per `.ssdl` element, in dependency
+  order). Phase 2 fills each card's `facts` from the source material (OpenAPI/schemas/PRD); Phase 5 authors each
+  section from its facts + spec slice, with `feeds` routing facts downstream. See `kb/README.md`.
 - **`examples/onboarding-journey.md`** — a small worked journey showing the stitched output and its journey map.
 - **Bundled spec** (self-contained, alongside this skill): `agent.manifest.yml` (index), `spec/` (slices),
   `AGENT_PROTOCOL.md`, and the `assets/` files (`lint-rules.md`, `completeness-checklist.md`,
