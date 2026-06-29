@@ -4,6 +4,12 @@ All notable changes to the **SSDL** (Single-Screen Specification Definition Lang
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and SSDL adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Section references (e.g. §4a) point to [`ssdl.spec.md`](ssdl.spec.md).
 
+## [Unreleased]
+
+### Docs
+- Clarified in §46 how an `@alias/<name>.ssdl` fragment import resolves via `ssdl.config.json` to the physical
+  `<category>.<name>.fragment.ssdl` file (closing a §45/§46 gap).
+
 ## [1.5.0] - 2026-06-27
 
 A consistency, reorganization, and packaging pass over v1.4.0. Contains breaking changes.

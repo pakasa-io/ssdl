@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
 description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (bundled in the skill) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.5.0
+version: 0.6.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -101,8 +101,8 @@ If the user defers the decision, state the recommendation and proceed.
 Design the **screen graph** before writing any file (this is the heart of the skill — see
 `references/navigation-stitching.md`):
 - Enumerate screens as nodes; draw edges as `ENTRY`/`EXIT`/`NAVIGATION` transitions.
-- Identify shared fragments (navigation chrome, design system, common errors) and cross-screen state (auth,
-  session, cart).
+- Identify shared fragments (nav chrome, design tokens, copy, error map, validators, models — see
+  `references/output-structure.md`) and cross-screen state (auth, session, cart).
 - Map each screen's lifecycle and state machine at a high level.
 - Verify the graph is **closed** (every `EXIT` lands on a real screen; every screen is reachable) and present it as
   a journey map. Offer one or two structural options when there's a real trade-off, with a recommendation. Get
@@ -110,8 +110,9 @@ Design the **screen graph** before writing any file (this is the heart of the sk
   `references/navigation-stitching.md`).
 
 #### Phase 5 — Build the journey, one screen at a time
-Build **screen by screen** against the agreed map — never the whole journey in one pass. For each screen, in
-journey order:
+If the corpus is new, first scaffold `ssdl.config.json` (the `@aliases`) and the `shared/` + `journeys/` skeleton
+per `references/output-structure.md`. Then build **screen by screen** against the agreed map — never the whole
+journey in one pass. For each screen, in journey order:
 1. **Load by trigger.** From the screen's entry in the map, derive its triggers — the components it places and the
    sections it needs — then `load()` exactly those slices and resolve their `with:` / `needs:` / `§N` to closure
    (the trigger table is in `references/ssdl-authoring.md`). Load nothing else.

@@ -35,7 +35,7 @@ screen.<feature>.<screen-name>.ssdl     # one screen per file
 <category>.<name>.fragment.ssdl          # shared, importable fragments
 ```
 
-Examples: `screen.checkout.cart.ssdl`, `screen.auth.login.ssdl`, `shared.navigation.fragment.ssdl`,
+Examples: `screen.checkout.cart.ssdl`, `screen.auth.login.ssdl`, `nav.app-shell.fragment.ssdl`,
 `design.tokens.fragment.ssdl`. For the full corpus layout — feature-first with a `shared/` DRY core, the promotion
 rule, and fragment versioning — see `output-structure.md`. When generating into an existing project, match what is
 already there.
@@ -106,12 +106,16 @@ Pull shared definitions in rather than repeating them:
 
 ```ssdl
 import { #app_nav, #app_tab_bar } from "@shared/navigation.ssdl" at v2
-import { copy.common, ERR-NETWORK } from "@shared/design_system.ssdl" at v3
+import { copy.common } from "@shared/copy.ssdl" at v1
+import { ERR-NETWORK } from "@shared/errors.ssdl" at v1
+import { VAL-email } from "@shared/validators.ssdl" at v1
 ```
 
-Use `import` for named definitions and `include` for inlined section content. Pin versions with `at v<n>`. Common
-fragments: navigation chrome, design tokens, shared error handlers, common copy, accessibility standards. When a
-pattern appears in 2+ screens of a journey, lift it into a fragment.
+Use `import` for named definitions and `include` for inlined section content. Pin versions with `at v<n>`; imports
+use logical `@alias/<name>.ssdl` paths resolved by `ssdl.config.json` (see §46). **Split shared definitions by
+concern** — nav, design tokens, copy, error map, validators, models, api — rather than one catch-all. When a
+pattern recurs in 2+ screens of a journey, lift it into a **feature-local** fragment; when a 2nd **feature** needs
+it, **promote it to `shared/`** (see `output-structure.md`).
 
 ## The authority chain (do not violate)
 

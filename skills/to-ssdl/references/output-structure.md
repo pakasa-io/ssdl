@@ -81,8 +81,9 @@ errors.common    → copy.common ;  triggered by  api.contracts
 ## Conventions
 
 - **File naming** (per spec): `screen.<feature>.<name>.ssdl`, `<category>.<name>.fragment.ssdl`.
-- **`@aliases`** in `ssdl.config.json` (`@shared`, `@design`, `@features`) so imports survive moves:
-  `import { #app_tab_bar } from "@shared/nav.app-shell.fragment.ssdl" at v3`.
+- **`@aliases`** in `ssdl.config.json` (`@shared`, `@design`, `@features`). Imports use a **logical**
+  `@alias/<name>.ssdl` path that `ssdl.config.json` maps to the physical `<category>.<name>.fragment.ssdl`, so they
+  survive renames: `import { #app_tab_bar } from "@shared/navigation.ssdl" at v3` → `shared/nav.app-shell.fragment.ssdl`.
 - **Versioned fragments** — bump on a breaking change; screens pin `at v<n>` → controlled rollout (safe
   design-system evolution).
 - **Journey maps are markdown** (`_journey.md`, `journeys/_app-map.md`) — the graph overview; the screens'
@@ -95,13 +96,13 @@ Edit one shared fragment (token / copy / error map / validator / nav) → every 
 its version pin. For new cross-feature reuse, author feature-local first and **promote to `shared/`** when a second
 feature needs it.
 
-## Spec-support caveat — check before emitting
+## Shared logic is spec-supported
 
-Presentation/contract fragments (components, copy keys, `ERR-IDs`, API contracts) export cleanly today.
-**`models.entities` and `validation.rules` require the fragment format to support exporting model types and
-validator rules** — confirm against the loaded `§46` (fragment file format), `§14` (MODEL), and `§34` (VALIDATION)
-before emitting them as shared fragments. If unsupported, keep those inline per screen (or raise a spec extension)
-rather than emitting invalid SSDL.
+The logic-layer fragments are already supported — §45 imports shared validators
+(`import { VAL-email, VAL-phone } from "@shared/validators.ssdl"`) and shared model fields
+(`import { $auth_fields } from "@shared/model_fragments.ssdl"`). Keep two guardrails: the **backend/API contract is
+the source of truth** for `models.entities` (it is a UI projection, not a second schema), and validator **messages
+live in `copy.common`**, never hardcoded.
 
 ## Why this shape
 

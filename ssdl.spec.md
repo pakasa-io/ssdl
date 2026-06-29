@@ -4541,6 +4541,11 @@ standards.mobile_a11y.fragment.ssdl
 apis.auth.fragment.ssdl
 ```
 
+**How imports resolve.** Screens reference a fragment by a logical `@alias/<name>.ssdl` path, not by its physical
+filename — `ssdl.config.json` maps the alias (e.g. `@shared`) and the logical `<name>` to the physical
+`<category>.<name>.fragment.ssdl` file. So `import { … } from "@shared/navigation.ssdl"` resolves to
+`shared.navigation.fragment.ssdl`, and import statements stay stable when a fragment is renamed or recategorised.
+
 ---
 
 ### 46.1 Fragment header

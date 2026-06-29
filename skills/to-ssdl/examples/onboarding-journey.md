@@ -1,7 +1,8 @@
 # Worked example — the "Sign in" operation as a stitched journey
 
 A compact, illustrative walkthrough of `to-ssdl` output: the business operation **"a returning user signs in"**
-modelled as a three-screen journey, navigation-stitched, with one shared fragment. Syntax here is illustrative —
+modelled as a three-screen journey, navigation-stitched, with one shared fragment. Files follow `references/output-structure.md` — screens under `features/<feature>/`, the
+shared fragment under `shared/`. Syntax here is illustrative —
 the authoritative grammar and exact directive options come from the spec bundled with this skill via `agent.manifest.yml` (load
 `sections.route`, `sections.navigation`, etc.).
 
@@ -15,14 +16,14 @@ Onboarding · Sign-in
   Entry:  Welcome (cold start; deeplink /welcome)   ·   Login (deeplink /login)
   Exit:   Home (replace-stack)  ·  SignUp (hand-off → Register journey)
   ⇒ = replace-stack — back must not return to Login after success
-  Shared: shared.navigation.fragment.ssdl (#app_tab_bar) imported by Home
+  Shared: shared/nav.app-shell.fragment.ssdl (#app_tab_bar) imported by Home
 ```
 
 Closure check: every `EXIT` lands on a real node — `SignUp` is a hand-off to the separate **Register** journey, not
 a dangling edge; `Welcome`/`Login` are reachable from app entry; `auth.success` replaces the stack so back cannot
 re-expose `Login`; `Home` requires auth and is reached only via success.
 
-## `screen.auth.welcome.ssdl`
+## `features/auth/screen.auth.welcome.ssdl`
 
 ```ssdl
 SCREEN Welcome v1
@@ -74,7 +75,7 @@ ACCEPTANCE {
 }
 ```
 
-## `screen.auth.login.ssdl`
+## `features/auth/screen.auth.login.ssdl`
 
 The full-mode version of this screen is `assets/sample.login.ssdl` — reuse it. The stitching that matters for the
 journey:
@@ -129,7 +130,7 @@ Note the design judgments: `redirect?` route param lets a deep link send the use
 `replace: stack` on success so back cannot return to `Login`; `@error → @loading` lets the user retry without
 leaving the screen.
 
-## `shared.navigation.fragment.ssdl`
+## `shared/nav.app-shell.fragment.ssdl`
 
 ```ssdl
 FRAGMENT navigation v1
@@ -146,7 +147,7 @@ export { #app_tab_bar }
 }
 ```
 
-## `screen.home.dashboard.ssdl` (journey destination)
+## `features/home/screen.home.dashboard.ssdl` (journey destination)
 
 ```ssdl
 SCREEN Home v1
