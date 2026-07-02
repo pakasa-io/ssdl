@@ -1,9 +1,9 @@
 # Knowledge base — extracted source facts, per `.ssdl` element
 
-A **fact-extraction layer**. Phase 2 parses the project's **source material** (OpenAPI, JSON schemas, DB/ERD, PRD,
-design specs) and records the concrete facts into one YAML card per `.ssdl` element. Phase 5 then authors each
-section from its card's `facts` **plus** the SSDL spec slice — so the output reflects **real contracts** (real
-attribute names, types, statuses, constraints), not invented ones.
+A **fact-extraction layer**. Extraction is **lazy and scoped** (see below): Phase 2 records the app-wide shared
+contracts, and Phase 5 extracts each screen's facts just-in-time — into one YAML card per `.ssdl` element. Each
+section is then authored from its card's `facts` **plus** the SSDL spec slice — so the output reflects **real
+contracts** (real attribute names, types, statuses, constraints), not invented ones.
 
 ```
 source material  ──extract──▶  KB facts   (WHAT is real)
@@ -37,12 +37,20 @@ constraints, enum, example, and sensitivity, so VALIDATION / UI / ANALYTICS each
 without re-reading the source. `feeds` is the **reverse of the dependency edges** — the sections that consume
 this card's facts.
 
-## Extraction (Phase 2)
+## Extraction is lazy and scoped (never a one-shot pass)
 
-Parse the source material → fill each card's `facts` + `extracted_from`; update `_index.yaml`. OpenAPI is the prime
-source for the data tier (MODEL / API / DATA / VALIDATION / ERRORS); the PRD and design specs feed the journey/UX
-tiers (PURPOSE / SCOPE / STATES / FLOW / A11Y / ACCEPTANCE). Anything missing or ambiguous in the source goes to
-`30-OPEN_QUESTIONS.gaps`.
+Extract facts **only for what is in play**, mirroring the skill's lazy spec-slice loading — never sweep the whole
+source into the KB up front:
+
+- **Phase 2 — shared contracts only.** Catalog the source artifacts, then extract the **app-wide** facts the
+  `shared/` layer needs: entities, base API conventions, the global error catalog (fill `facts` + `extracted_from`;
+  update `_index.yaml`). OpenAPI is the prime source here.
+- **Phase 5 — screen-scoped, just-in-time.** As each screen is built, extract **only that screen's** facts into its
+  cards — its `MODEL`/`API`/`VALIDATION`/`ERRORS` from the contract, its `STATES`/`FLOW`/`A11Y`/`ACCEPTANCE` from
+  the PRD/design — reusing shared contracts already captured.
+
+**Rule (strict):** pre-extracting facts for elements or screens not yet in scope is a defect. Anything missing or
+ambiguous in the source goes to `30-OPEN_QUESTIONS.gaps`.
 
 ## Consumption (Phase 5)
 
