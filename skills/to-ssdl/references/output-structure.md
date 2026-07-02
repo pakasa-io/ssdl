@@ -10,6 +10,7 @@ screen or fragment goes (Phase 4 placement, Phase 5 writing).
 app-spec/                                   # the SSDL corpus — design source of truth (root name is the project's call)
 ├─ ssdl.config.json                         # @aliases, fragment version pins, lint config
 ├─ README.md                                # corpus map + conventions
+├─ _session.yaml                            # run ledger — status + per-journey/screen progress + source fingerprints
 │
 ├─ kb/                                       # runtime knowledge base — facts extracted from THIS project's sources
 │  ├─ _index.yaml                            # reverse lookup: sources / operations / entities / attributes / screens
@@ -74,6 +75,13 @@ committed with the project** — not in the skill.
   re-runs reuse the same grounded contracts, keeping the SSDL consistent with the backend.
 
 See `skills/to-ssdl/kb/README.md` for the card schema and `feeds` fact-routing.
+
+## Run ledger (`_session.yaml`)
+
+One file at the corpus root tracks run state — `status` (in_progress/complete), per-journey/per-screen progress, and
+a fingerprint per grounded source — so a re-run knows whether to **resume**, **patch**, or start **fresh**, and what
+source has drifted since. It is bookkeeping, not content (the `.ssdl` files + KB are ground truth). See
+`references/run-modes.md`.
 
 ## Three tiers of DRY
 

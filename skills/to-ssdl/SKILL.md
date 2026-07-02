@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
 description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (bundled in the skill) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.11.0
+version: 0.12.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -50,7 +50,9 @@ the core discipline of this skill — turning an operation into a closed, consis
 
 ## Workflow — discover once, plan per journey, build per screen
 
-The work is a **three-level nested loop**, not a one-shot pipeline: run **Phases 1–3 once**, then **repeat Phases
+Every run first determines its **mode** — fresh, resume, or patch (Phase 0) — because the corpus and KB persist
+between runs and must never be blanket-overwritten. The work is then a **three-level nested loop**, not a one-shot
+pipeline: run **Phases 1–3 once**, then **repeat Phases
 4–7 per journey**, and **within Phase 5 repeat per screen**. Only a candidate *list* of journeys is produced
 upfront — never the full planset of maps. Planning, closure-review, and checkpoints are journey-scoped; generation
 and commits are screen-scoped. The **journey map** (Phase 4) is the small, durable anchor that carries cross-screen
@@ -82,6 +84,15 @@ play; never pre-extract the whole source.
 and **re-read them at each journey boundary** (Phase 4) and before each review (Phase 6) so they survive context
 compaction. Everything else is lazy-loaded; these two are not.
 
+### Every run — determine the mode first
+
+#### Phase 0 — Fresh, resume, or patch
+Read the corpus run ledger (`<corpus>/_session.yaml`) before anything else to choose the mode: **fresh** (no corpus
+or ledger), **resume** (`status: in_progress` — continue the unfinished work), or **patch** (`status: complete` —
+re-run the whole pipeline with the **same rigor as a fresh run**, seeded with the existing corpus/KB and working by
+reconciliation). **Never blanket-overwrite** the corpus or KB: resume and patch read-then-reconcile with targeted
+edits, and deletions are surfaced, never silent. See `references/run-modes.md`.
+
 ### Once (per engagement)
 
 #### Phase 1 — Discovery
@@ -105,7 +116,9 @@ and global error catalog the `shared/` layer needs (fill `facts` + `extracted_fr
 screen's own `MODEL`/`API`/`VALIDATION`/state/UX facts are extracted **just-in-time in Phase 5**, scoped to the
 screen being built — the same lazy rule as spec-slice loading. **Never bulk-extract the whole source up front**;
 pre-extracting facts for screens not yet architected is a defect. Missing or ambiguous source lands in
-`OPEN_QUESTIONS`.
+`OPEN_QUESTIONS`. **In patch mode**, also re-fingerprint each source and diff it against the ledger and each card's
+`extracted_from` to classify facts (unchanged / changed / new / removed), and scan the existing corpus for gaps to
+harden (missing states, `A11Y`, chrome, error handling) — see `references/run-modes.md`.
 
 #### Phase 3 — Clarifying questions (do not skip)
 Resolve ambiguities **before** designing the graph. Typical gaps: the actors and their `access:` level
@@ -154,8 +167,8 @@ journey in one pass. For each screen, in journey order:
 3. **Self-check** the screen in isolation: `#id`s internally consistent; its `ENTRY`/`EXIT`/`NAVIGATION` edges
    match the map; per-screen lint.
 4. **Write** the file and **release its body from working context** — rely on the map + disk thereafter.
-5. **Commit** the screen, then move to the next. (Per-screen is the recommended cadence; commit only at the user's
-   direction.)
+5. **Commit** the screen and mark it `ready` in `_session.yaml`, then move to the next. (Per-screen is the
+   recommended cadence; commit only at the user's direction.)
 
 Place each file per `references/output-structure.md` — screens under their feature folder, shared details
 **imported, never inlined**; author a new fragment (navigation chrome, design system, validators, error map) when
@@ -178,8 +191,10 @@ generated:
 Present findings by severity and fix per the user's call.
 
 #### Phase 7 — Checkpoint
-Mark tasks complete. Output the **journey map**, the files written, and key design decisions; surface blockers;
-then move to the next journey in the list (or stop). Commit only when the user asks.
+Mark tasks complete and **update the run ledger** (`_session.yaml`) — the journey's status, the source fingerprints
+grounded this run, and `status: complete` once every journey is done. Output the **journey map**, the files written,
+and key design decisions; surface blockers; then move to the next journey in the list (or stop). Commit only when the
+user asks.
 
 ## Resources
 
@@ -190,6 +205,8 @@ then move to the next journey in the list (or stop). Commit only when the user a
   sections, fragment reuse, and a principal-UX pass over each SSDL section.
 - **`references/output-structure.md`** — the generated corpus layout (feature-first + a `shared/` DRY core), the
   promotion rule, fragment versioning, and logical imports (`@shared/<name>.ssdl`).
+- **`references/run-modes.md`** — re-running safely: the `_session.yaml` run ledger, fresh/resume/patch mode
+  detection, and the non-destructive reconciliation protocol for patch mode.
 - **`kb/`** — the **knowledge base**: a fact-extraction scaffold (one YAML card per `.ssdl` element, in dependency
   order). Extraction is lazy and scoped: Phase 2 captures the shared contracts, Phase 5 extracts each screen's facts
   just-in-time and authors its sections from those facts + the spec slice, with `feeds` routing facts downstream.
