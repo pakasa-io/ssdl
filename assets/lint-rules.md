@@ -61,5 +61,5 @@ LINT-053: An imported item that is never referenced anywhere in the importing sc
 
 // App-shell consistency rules
 LINT-054: App chrome that recurs across screens (nav bar, tab bar, drawer, app-wide banner) must be imported from a shared fragment, not re-declared per screen.
-LINT-055: When the corpus defines a shared app shell, every screen must either include it or annotate the omission with // chrome: <category> (auth | modal | immersive | wizard); a silent omission on an access: authenticated screen is an error.
+LINT-055: When the corpus defines a shared app shell, every screen must either include it or declare the omission with // chrome: <category> (auth | modal | immersive | wizard); a silent omission is an error.
 ```

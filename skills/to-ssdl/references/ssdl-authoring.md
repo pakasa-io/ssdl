@@ -62,8 +62,9 @@ trigger/guard/action · `BR-/VAL-/ERR-/AC-xx` rule/validation/error/acceptance I
 
 ## A principal-UX pass over each section
 
-Author each section as a senior designer-engineer would — these are the judgments that make the output good, not
-just valid:
+Author each section as a senior designer-engineer would, **from the screen's KB fact card** (the real attributes,
+contracts, and constraints extracted from source) plus the section's spec slice — never invent what the source
+already defines (see `kb/README.md`). These are the judgments that make the output good, not just valid:
 
 - **META** — owner, platform, status, changelog. Set `status: draft` until the completeness checklist passes.
 - **PURPOSE / SCOPE** — one crisp reason the screen exists; `SCOPE.out` is as important as `in` to prevent creep.
@@ -105,7 +106,6 @@ just valid:
 Pull shared definitions in rather than repeating them:
 
 ```ssdl
-import { #app_nav, #app_tab_bar } from "@shared/navigation.ssdl" at v2
 import { copy.common } from "@shared/copy.ssdl" at v1
 import { ERR-NETWORK } from "@shared/errors.ssdl" at v1
 import { VAL-email } from "@shared/validators.ssdl" at v1
@@ -116,6 +116,12 @@ use logical `@alias/<name>.ssdl` paths resolved by `ssdl.config.json` (see §46)
 concern** — nav, design tokens, copy, error map, validators, models, api — rather than one catch-all. When a
 pattern recurs in 2+ screens of a journey, lift it into a **feature-local** fragment; when a 2nd **feature** needs
 it, **promote it to `shared/`** (see `output-structure.md`).
+
+**The app shell is reuse by inheritance, not per-screen import.** Put the nav/tab/drawer chrome in
+`@shared/navigation.ssdl`, place it once in an `AppShell` base layout, and have every in-app screen
+**`extends AppShell`** — the chrome is inherited, never re-imported per screen (LINT-054). Exception screens
+(`auth`/`modal`/`immersive`/`wizard`) extend an exception base or annotate `// chrome: <category>` (LINT-055). See
+`navigation-stitching.md` ("App shell").
 
 ## The authority chain (do not violate)
 

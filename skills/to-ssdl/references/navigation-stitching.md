@@ -96,7 +96,12 @@ A journey is more than navigation — state and chrome flow across screens too.
 
 A coherent app keeps one **shell** — the persistent frame (top app bar, bottom tab/nav, optional drawer + search) —
 across every primary screen, so users learn the navigation once. Enforce it structurally, not by hoping each screen
-remembers to add it:
+remembers to add it.
+
+The chrome is composed in **three layers** — keep them distinct: the **fragment** (`@shared/navigation.ssdl`) holds
+the chrome *components*; the **`AppShell` base** imports them once into fixed slots (the only place the fragment is
+imported — satisfying LINT-054); and each **screen** `extends AppShell`, inheriting the chrome and filling `#body`.
+Screens never import or re-declare chrome themselves.
 
 1. **Define it once.** Put the chrome in `@shared/navigation.ssdl` and a base layout `AppShell` (the §49 frame with
    the shell in fixed slots + a `#body` content slot). Decide the chrome and its fixed destinations in Phase 4 and
@@ -105,8 +110,8 @@ remembers to add it:
    shell is inherited, present in the resolved spec, and linted with the screen (spec §47). Never re-declare the
    tab/nav bar per screen (**LINT-054**).
 3. **Exceptions are declared, never silent.** A screen leaves the shell only by extending a designated exception base
-   — `AppAuth`, `AppModal`, `AppImmersive`, `AppFlow` — or by annotating `// chrome: <category>`. An
-   `access: authenticated` screen with no shell and no annotation is an error (**LINT-055**).
+   — `AppAuth`, `AppModal`, `AppImmersive`, `AppWizard` — or by annotating `// chrome: <category>`. A screen with
+   no shell and no declared exception is an error (**LINT-055**).
 
 **Exception taxonomy** — opt out only for these; everything else keeps the shell:
 

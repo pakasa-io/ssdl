@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
 description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (bundled in the skill) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.10.0
+version: 0.11.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -161,7 +161,7 @@ Place each file per `references/output-structure.md` — screens under their fea
 **imported, never inlined**; author a new fragment (navigation chrome, design system, validators, error map) when
 first needed and promote it to `shared/` once a 2nd feature uses it. **Every in-app screen `extends AppShell`** so the
 chrome is inherited, not re-declared; an exception screen extends a declared exception base (`AppAuth`/`AppModal`/
-`AppImmersive`/`AppFlow`) or annotates `// chrome: <category>` (see `references/navigation-stitching.md`). Keep only
+`AppImmersive`/`AppWizard`) or annotates `// chrome: <category>` (see `references/navigation-stitching.md`). Keep only
 the journey map + the current screen's slices in working context.
 
 #### Phase 6 — Review: navigation closure + lint + completeness
