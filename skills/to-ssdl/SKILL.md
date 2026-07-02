@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
 description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (bundled in the skill) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.9.0
+version: 0.10.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -77,6 +77,11 @@ on disk. Reload slices per screen; never hold multiple screens' bodies — or al
 KB facts the same way** — shared contracts in Phase 2, each screen's facts in Phase 5, always scoped to what's in
 play; never pre-extract the whole source.
 
+**Resident quality gates:** two small files stay in memory for the whole engagement — `assets/lint-rules.md` and
+`assets/completeness-checklist.md`. Read both at the **start** (Phase 2) so they shape authoring, not just review,
+and **re-read them at each journey boundary** (Phase 4) and before each review (Phase 6) so they survive context
+compaction. Everything else is lazy-loaded; these two are not.
+
 ### Once (per engagement)
 
 #### Phase 1 — Discovery
@@ -85,9 +90,10 @@ operation is, who performs it, and what "done" looks like. Produce a short list 
 scope before going further.
 
 #### Phase 2 — Ground in the spec and any existing screens
-Read **only `agent.manifest.yml`** up front (the index) and skim `AGENT_PROTOCOL.md` — do **not**
-bulk-load spec files; each `sections.*` / `components.*` / `enums` file loads later, lazily, when a trigger fires
-(Phase 5). If `.ssdl` files already exist in the target
+Read **`agent.manifest.yml`** up front (the index) and skim `AGENT_PROTOCOL.md`; also read the two quality gates
+now — **`assets/lint-rules.md`** and **`assets/completeness-checklist.md`** — and keep them resident (see "Resident
+quality gates"). Do **not** bulk-load spec files; each `sections.*` / `components.*` / `enums` file loads later,
+lazily, when a trigger fires (Phase 5). If `.ssdl` files already exist in the target
 project, explore them (launch read-only explorer agents for larger codebases) to learn naming, fragments already in
 use, navigation conventions, and the design-system fragment. Reuse before inventing. Report what exists.
 
@@ -109,6 +115,9 @@ and which screens are net-new vs variants of existing ones. Present questions as
 If the user defers the decision, state the recommendation and proceed.
 
 ### Per journey (repeat Phases 4–7)
+
+At each journey's start, **refresh the resident quality gates** — re-read `assets/lint-rules.md` and
+`assets/completeness-checklist.md` so they are not lost to context compaction across a long generation.
 
 #### Phase 4 — Journey & navigation architecture
 Design the **screen graph** before writing any file (this is the heart of the skill — see
@@ -161,10 +170,10 @@ generated:
 - **Navigation closure** — reconcile `EXIT` ↔ `NAVIGATION` (LINT-030), confirm every destination exists (in this
   journey or as a marked hand-off), back and deep-link behavior is defined, and the journey is traceable
   end-to-end.
-- **Lint** — run the catalogue in `assets/lint-rules.md` against each file.
+- **Lint** — re-read `assets/lint-rules.md` (refresh from disk), then run the full catalogue against each file.
 - **App-shell consistency** — every non-exception screen resolves to include the shell; exceptions are declared;
   chrome comes only from `@shared/navigation.ssdl` (LINT-054/055).
-- **Completeness** — run `assets/completeness-checklist.md` before any screen is called `ready`.
+- **Completeness** — re-read and run `assets/completeness-checklist.md` before any screen is called `ready`.
 - **Lifecycle fidelity** — `STATE_TRANSITIONS` present for 3+ states; every state reachable.
 Present findings by severity and fix per the user's call.
 
