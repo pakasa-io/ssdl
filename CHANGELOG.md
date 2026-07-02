@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- **LINT-054 / LINT-055** — app-shell consistency: recurring chrome (nav/tab/drawer bars, app-wide banners) must be
+  imported from a shared fragment, not re-declared per screen; and when a corpus defines a shared app shell, every
+  screen must include it or annotate the omission `// chrome: <category>`.
+
 ### Docs
 - Clarified in §46 how an `@alias/<name>.ssdl` fragment import resolves via `ssdl.config.json` to the physical
   `<category>.<name>.fragment.ssdl` file (closing a §45/§46 gap).

@@ -1,7 +1,7 @@
 ---
 name: to-ssdl
 description: This skill should be used when the user asks to "convert to SSDL", "generate SSDL", "model this as SSDL", "turn this spec/PRD into SSDL", "design the screens/flows in SSDL", invokes "/to-ssdl", or wants navigation-stitched .ssdl screen specs that capture user journeys, flows, and lifecycles from a product spec, PRD, process description, or business operation. The skill acts as a principal mobile UI/UX engineer and treats the SSDL specification (bundled in the skill) as the language authority. It produces SSDL design artifacts, never application code.
-version: 0.8.0
+version: 0.9.0
 ---
 
 # to-ssdl — model business operations as navigation-stitched SSDL
@@ -26,7 +26,8 @@ SSDL** — a navigable graph of screens, not an implementation. Do not generate 
   permissions, keyboard handling) so the spec maps cleanly to iOS, Android, RN, Flutter, or mobile web.
 - **Accessibility-first.** `A11Y` is authored, not appended — focus order, labels, touch targets, reduced motion.
 - **Reuse over repetition.** Shared chrome (nav bars, tab bars, error handlers, design tokens) lives in fragments
-  pulled in with `import`/`include`, not copy-pasted per screen.
+  and a consistent **app shell** every screen `extends` (see `references/navigation-stitching.md`), not copy-pasted
+  per screen.
 
 ## The SSDL spec is the authority — ground in it first
 
@@ -115,6 +116,9 @@ Design the **screen graph** before writing any file (this is the heart of the sk
 - Enumerate screens as nodes; draw edges as `ENTRY`/`EXIT`/`NAVIGATION` transitions.
 - Identify shared fragments (nav chrome, design tokens, copy, error map, validators, models — see
   `references/output-structure.md`) and cross-screen state (auth, session, cart).
+- **Decide the app shell once** — the chrome (bottom tab / top bar / drawer / search) and its fixed destinations,
+  plus which screens are exceptions. Define the `AppShell` base + exception bases and record the shell on the map, so
+  every screen adopts it consistently (see `references/navigation-stitching.md`, "App shell").
 - Map each screen's lifecycle and state machine at a high level.
 - Verify the graph is **closed** (every `EXIT` lands on a real screen; every screen is reachable) and present it as
   a journey map. Offer one or two structural options when there's a real trade-off, with a recommendation. Get
@@ -146,8 +150,10 @@ journey in one pass. For each screen, in journey order:
 
 Place each file per `references/output-structure.md` — screens under their feature folder, shared details
 **imported, never inlined**; author a new fragment (navigation chrome, design system, validators, error map) when
-first needed and promote it to `shared/` once a 2nd feature uses it. Keep only the journey map + the current
-screen's slices in working context.
+first needed and promote it to `shared/` once a 2nd feature uses it. **Every in-app screen `extends AppShell`** so the
+chrome is inherited, not re-declared; an exception screen extends a declared exception base (`AppAuth`/`AppModal`/
+`AppImmersive`/`AppFlow`) or annotates `// chrome: <category>` (see `references/navigation-stitching.md`). Keep only
+the journey map + the current screen's slices in working context.
 
 #### Phase 6 — Review: navigation closure + lint + completeness
 Review the journey as a whole, and **re-read the written files from disk** — do not rely on recall of what was
@@ -156,6 +162,8 @@ generated:
   journey or as a marked hand-off), back and deep-link behavior is defined, and the journey is traceable
   end-to-end.
 - **Lint** — run the catalogue in `assets/lint-rules.md` against each file.
+- **App-shell consistency** — every non-exception screen resolves to include the shell; exceptions are declared;
+  chrome comes only from `@shared/navigation.ssdl` (LINT-054/055).
 - **Completeness** — run `assets/completeness-checklist.md` before any screen is called `ready`.
 - **Lifecycle fidelity** — `STATE_TRANSITIONS` present for 3+ states; every state reachable.
 Present findings by severity and fix per the user's call.

@@ -85,12 +85,40 @@ A journey is more than navigation — state and chrome flow across screens too.
 - **Shared session/auth/cart state.** Do not duplicate it per screen. Express it through a shared fragment, route
   params passed along the path, or a `DATA` source each screen reads. Note where the journey requires
   `access: authenticated` and where the session can expire mid-journey (and where that throws the user).
-- **Shared chrome.** Tab bars, nav bars, and global banners belong in a navigation fragment imported into each
-  screen (`import { #app_tab_bar, #app_nav } from "@shared/navigation.ssdl" at v1`), not re-declared. A tabbed
-  journey shares one `TabBar`; a stacked journey shares one `NavBar` pattern.
+- **Shared chrome → the app shell.** Tab bars, nav bars, drawers, and global banners are not per-screen decisions:
+  they form the **app shell**, defined once and adopted consistently across screens. See "App shell — consistent
+  chrome" below.
 - **Lifecycle stitching.** Returning to a screen is a transition too. Use `LIFECYCLE` (`on screen.view`,
   `on app.foreground`) to define re-entry behavior — refetch, resume, or restore scroll — and `STATE_TRANSITIONS`
   to show how a screen moves between `@idle/@loading/@error/@success` as the user and the backend act.
+
+## App shell — consistent chrome (enforced)
+
+A coherent app keeps one **shell** — the persistent frame (top app bar, bottom tab/nav, optional drawer + search) —
+across every primary screen, so users learn the navigation once. Enforce it structurally, not by hoping each screen
+remembers to add it:
+
+1. **Define it once.** Put the chrome in `@shared/navigation.ssdl` and a base layout `AppShell` (the §49 frame with
+   the shell in fixed slots + a `#body` content slot). Decide the chrome and its fixed destinations in Phase 4 and
+   record them on the app/journey map.
+2. **Adopt by default, via inheritance.** Every in-app screen `extends AppShell` and overrides only `#body` — so the
+   shell is inherited, present in the resolved spec, and linted with the screen (spec §47). Never re-declare the
+   tab/nav bar per screen (**LINT-054**).
+3. **Exceptions are declared, never silent.** A screen leaves the shell only by extending a designated exception base
+   — `AppAuth`, `AppModal`, `AppImmersive`, `AppFlow` — or by annotating `// chrome: <category>`. An
+   `access: authenticated` screen with no shell and no annotation is an error (**LINT-055**).
+
+**Exception taxonomy** — opt out only for these; everything else keeps the shell:
+
+| Category | Screens | Why |
+|----------|---------|-----|
+| `auth`      | splash, onboarding, login / register | pre-app, single-task focus |
+| `modal`     | dialogs, bottom sheets, full-screen overlays | transient — no tab bar |
+| `immersive` | camera / scanner, media player, full-screen map | remove distraction |
+| `wizard`    | checkout / multi-step flow steps | prevent abandonment; a step indicator replaces the nav |
+
+For a **detail screen on a stack**, keep the top bar (with back) and decide bottom-bar visibility **once** for the
+app (iOS hides it on push, Android keeps it) — then apply that decision uniformly.
 
 ## Mapping an operation to the graph (worked shape)
 
@@ -129,7 +157,8 @@ the entry points, the access level, and the replace-stack transitions are visibl
 - Screens with `EXIT` to a destination that exists in no journey ("I'll add it later") — close the graph, stub the
   node, or mark it a hand-off to a named journey. (A hand-off to another journey's entry is fine; a destination in
   no journey is not.)
-- Re-declaring the tab/nav bar in every screen instead of a fragment.
+- Re-declaring the tab/nav bar in every screen instead of a fragment (LINT-054), or silently dropping the app shell
+  without a declared `// chrome:` exception (LINT-055).
 - Modeling only the happy path — a transition out of `@error` and `@empty` is part of the journey.
 - Putting business guards in two places (`BUSINESS_RULES` and `ACTIONS`) — see the authority chain in
   `ssdl-authoring.md`.

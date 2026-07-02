@@ -58,4 +58,8 @@ LINT-050: Importing a non-exported item from a fragment that has explicit export
 LINT-051: A local section declaration that shadows an imported item of the same ID receives a warning — local wins, but the shadow should be intentional.
 LINT-052: A section declaration that appears before an include and is overridden by that include receives a warning. Move declarations after include if they are intended as overrides.
 LINT-053: An imported item that is never referenced anywhere in the importing screen spec (not in UI children:, not in FLOW, not in ACTIONS, not in ERRORS, not in COPY, etc.) should be removed or annotated // imported for: <reason>.
+
+// App-shell consistency rules
+LINT-054: App chrome that recurs across screens (nav bar, tab bar, drawer, app-wide banner) must be imported from a shared fragment, not re-declared per screen.
+LINT-055: When the corpus defines a shared app shell, every screen must either include it or annotate the omission with // chrome: <category> (auth | modal | immersive | wizard); a silent omission on an access: authenticated screen is an error.
 ```

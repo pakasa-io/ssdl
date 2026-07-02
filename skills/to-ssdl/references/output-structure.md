@@ -26,6 +26,12 @@ app-spec/                                   # the SSDL corpus — design source 
 │  ├─ api.contracts.fragment.ssdl            # base URL, auth, pagination, cache conventions
 │  ├─ analytics.conventions.fragment.ssdl    # event naming + privacy/consent defaults
 │  ├─ app.actors.fragment.ssdl               # actors + external systems used across screens
+│  ├─ layouts/                               # base app-shell + exception bases — screens `extends` these
+│  │  ├─ app.shell.base.ssdl                 #   default frame: chrome in fixed slots + a #body content slot
+│  │  ├─ app.auth.base.ssdl                  #   no shell — login / onboarding / splash
+│  │  ├─ app.modal.base.ssdl                 #   transient overlay — no tab bar
+│  │  ├─ app.immersive.base.ssdl             #   full-screen focus — camera / media / map
+│  │  └─ app.flow.base.ssdl                  #   wizard / checkout steps — step indicator, no nav
 │  └─ components/                            # reusable composite components (used by ≥2 features)
 │     ├─ ui.money.fragment.ssdl
 │     ├─ ui.user-avatar.fragment.ssdl
@@ -80,7 +86,9 @@ feature, it stays local. Avoids both duplication and premature generalization.
 
 ## What `shared/` owns
 
-**Presentation:** `design.tokens`, `nav.app-shell`, `copy.common`, `a11y.standards`, `components/`.
+**Presentation:** `design.tokens`, `nav.app-shell`, `copy.common`, `a11y.standards`, `components/`, and `layouts/` —
+the `AppShell` base every in-app screen `extends` (chrome inherited, not re-declared) plus the `AppAuth`/`AppModal`/
+`AppImmersive`/`AppFlow` exception bases. See `navigation-stitching.md` ("App shell") + LINT-054/055.
 **Contracts & instrumentation:** `api.contracts`, `analytics.conventions`, `app.actors`.
 **Logic layer** — the screen logic that drifts the most across screens, so share it deliberately:
 
